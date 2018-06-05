@@ -14,7 +14,7 @@ TPUP serves two purposes:
 
 --| Instructions
 
-If you're more of a visual learner, please watch this video going over the instructions: 
+If you're more of a visual learner, please watch this video going over the instructions: https://youtu.be/D7zEDHe-Acw
 Otherwise, read on.
 
 First, download the tool and extract the entire folder wherever you like. After launching it, make sure the Game Directory field points to the folder where your game is installed (the folder that contains DarkSoulsRemastered.exe.) You may also change where unpacked textures are dumped to or where texture overrides are loaded from, but I recommend leaving those with the default.
