@@ -227,6 +227,7 @@ namespace DSR_TPUP
                 {
                     tpup = null;
                     tpupThread = null;
+                    logLength = 0;
                     enableControls(true);
 
                     if (abort)
