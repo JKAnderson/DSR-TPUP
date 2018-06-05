@@ -1,5 +1,7 @@
 
 --| DSR Texture Packer & Unpacker
+--| https://www.nexusmods.com/darksoulsremastered/mods/9
+--| https://github.com/JKAnderson/DSR-TPUP
 
 A tool to extract and override textures in Dark Souls: Remastered.
 Requires .NET 4.7.2: https://www.microsoft.com/net/download/thank-you/net472
