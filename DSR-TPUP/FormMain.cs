@@ -140,7 +140,7 @@ namespace DSR_TPUP
                     txtLog.Clear();
                     appendLog("Unpacking all textures...");
                     tpup = new TPUP(Environment.ProcessorCount);
-                    tpupThread = new Thread(() => tpup.Process(txtGameDir.Text, unpackDir, false));
+                    tpupThread = new Thread(() => tpup.ProcessFile(txtGameDir.Text, unpackDir, false));
                     tpupThread.Start();
                 }
             }
@@ -173,7 +173,7 @@ namespace DSR_TPUP
                 txtLog.Clear();
                 appendLog("Repacking overridden textures...");
                 tpup = new TPUP(Environment.ProcessorCount);
-                tpupThread = new Thread(() => tpup.Process(txtGameDir.Text, txtRepackDir.Text, true));
+                tpupThread = new Thread(() => tpup.ProcessFile(txtGameDir.Text, txtRepackDir.Text, true));
                 tpupThread.Start();
             }
         }

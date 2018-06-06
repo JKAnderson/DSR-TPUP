@@ -12,6 +12,10 @@ namespace DSR_TPUP
 
         public TPF(byte[] bytes)
         {
+            string magic = bytes.ReadString(0x0, 4);
+            if (magic != "TPF")
+                throw new FormatException("Invalid TPF magic characters: " + magic);
+
             bool bigEndian = bytes.ReadUInt32(0x8) >= 0x1000000;
             uint flags = bytes.ReadUInt32(0xC, bigEndian);
             switch (flags)

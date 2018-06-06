@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -37,7 +38,7 @@ namespace DSR_TPUP
             threads = new Thread[threadCount];
         }
 
-        public void Process(string gameDir, string looseDir, bool repack)
+        public void ProcessFile(string gameDir, string looseDir, bool repack)
         {
             gameDir = Path.GetFullPath(gameDir);
             looseDir = Path.GetFullPath(looseDir);
@@ -107,7 +108,10 @@ namespace DSR_TPUP
                         decompressedExtension = Path.GetExtension(absolute.Substring(0, absolute.Length - 4));
 
                     DCX dcx = null;
-                    AppendLog("Processing: " + relative);
+                    if (repack)
+                        AppendLog("Checking: " + relative);
+                    else
+                        AppendLog("Unpacking: " + relative);
 
                     byte[] bytes = File.ReadAllBytes(absolute);
                     if (extension == ".dcx")
@@ -132,9 +136,7 @@ namespace DSR_TPUP
                                     dcx.Decompressed = tpfBytes;
                                     tpfBytes = dcx.Compress();
                                 }
-                                if (!File.Exists(absolute + ".tpupbak"))
-                                    File.Copy(absolute, absolute + ".tpupbak");
-                                File.WriteAllBytes(absolute, tpfBytes);
+                                writeRepack(absolute, tpfBytes);
                             }
                             break;
 
@@ -155,12 +157,8 @@ namespace DSR_TPUP
                                         dcx.Decompressed = repacked.Item1;
                                         repacked.Item1 = dcx.Compress();
                                     }
-                                    if (!File.Exists(absolute + ".tpupbak"))
-                                        File.Copy(absolute, absolute + ".tpupbak");
-                                    if (!File.Exists(bdtPath + ".tpupbak"))
-                                        File.Copy(bdtPath, bdtPath + ".tpupbak");
-                                    File.WriteAllBytes(absolute, repacked.Item1);
-                                    File.WriteAllBytes(bdtPath, repacked.Item2);
+                                    writeRepack(absolute, repacked.Item1);
+                                    writeRepack(bdtPath, repacked.Item2);
                                 }
                             }
                             else
@@ -203,9 +201,7 @@ namespace DSR_TPUP
                                         {
                                             (byte[], byte[]) repacked = bndBHD.Repack(bndBDT);
                                             entry.Bytes = repacked.Item1;
-                                            if (!File.Exists(bndBDTPath + ".tpupbak"))
-                                                File.Copy(bndBDTPath, bndBDTPath + ".tpupbak");
-                                            File.WriteAllBytes(bndBDTPath, repacked.Item2);
+                                            writeRepack(bndBDTPath, repacked.Item2);
                                             edited = true;
                                         }
                                     }
@@ -222,14 +218,19 @@ namespace DSR_TPUP
                                     dcx.Decompressed = bndBytes;
                                     bndBytes = dcx.Compress();
                                 }
-                                if (!File.Exists(absolute + ".tpupbak"))
-                                    File.Copy(absolute, absolute + ".tpupbak");
-                                File.WriteAllBytes(absolute, bndBytes);
+                                writeRepack(absolute, bndBytes);
                             }
                             break;
                     }
                 }
             }
+        }
+
+        private void writeRepack(string path, byte[] bytes)
+        {
+            if (!File.Exists(path + ".tpupbak"))
+                File.Copy(path, path + ".tpupbak");
+            File.WriteAllBytes(path, bytes);
         }
 
         private bool processBHD(BHD bhd, BDT bdt, string directory, bool repack)
@@ -284,25 +285,44 @@ namespace DSR_TPUP
             for (int i = 0; i < tpf.Files.Count; i++)
             {
                 TPFEntry tpfEntry = tpf.Files[i];
+                string name = tpfEntry.Name;
+                if (dupes.Contains(name))
+                    name += "_" + i;
+                string ddsPath = directory + "\\" + name + ".dds";
+                string pngPath = directory + "\\" + name + ".png";
+
                 lock (writeLock)
                 {
-                    string name = tpfEntry.Name;
-                    if (dupes.Contains(name))
-                        name += "_" + i;
-                    string path = directory + "\\" + name + ".dds";
-
                     if (repack)
                     {
-                        if (File.Exists(path))
+                        byte[] ddsBytes = null;
+                        DDS.DXGI_FORMAT originalFormat = DDS.GetFormat(tpfEntry.Bytes);
+                        if (File.Exists(ddsPath) || File.Exists(ddsPath + "2"))
                         {
-                            tpfEntry.Bytes = File.ReadAllBytes(path);
+                            ddsBytes = File.Exists(ddsPath) ? File.ReadAllBytes(ddsPath) : File.ReadAllBytes(ddsPath + "2");
+                            DDS.DXGI_FORMAT newFormat = DDS.GetFormat(ddsBytes);
+                            if (originalFormat != newFormat)
+                            {
+                                AppendLog("Warning: expected format {0}, got format {1}. Converting {2}...", originalFormat, newFormat, ddsPath);
+                                ddsBytes = convertFile(directory, name + ".dds", originalFormat, false);
+                            }
+                        }
+                        else if (File.Exists(pngPath))
+                        {
+                            AppendLog("Warning: .png is supported, but not recommended. Converting {0}...", pngPath);
+                            ddsBytes = convertFile(directory, name + ".png", originalFormat, true);
+                        }
+
+                        if (ddsBytes != null)
+                        {
+                            tpfEntry.Bytes = ddsBytes;
                             edited = true;
                         }
                     }
                     else
                     {
-                        if (!File.Exists(path))
-                            File.WriteAllBytes(path, tpfEntry.Bytes);
+                        if (!File.Exists(ddsPath))
+                            File.WriteAllBytes(ddsPath, tpfEntry.Bytes);
                         else
                             throw null;
                     }
@@ -310,6 +330,42 @@ namespace DSR_TPUP
             }
 
             return edited;
+        }
+
+        private byte[] convertFile(string directory, string filename, DDS.DXGI_FORMAT format, bool srgb)
+        {
+            if (!File.Exists("bin\\texconv.exe"))
+                throw new FileNotFoundException("texconv.exe not found in bin folder");
+
+            string noExtension = Path.GetFileNameWithoutExtension(filename);
+            string outPath = directory + "\\texconv_" + noExtension + ".dds";
+            if (File.Exists(outPath))
+                File.Delete(outPath);
+
+            string args;
+            if (srgb)
+                args = "-px texconv_ -srgbo -f {0} -o \"{1}\" \"{1}\\{2}\"";
+            else
+                args = "-px texconv_ -f {0} -o \"{1}\" \"{1}\\{2}\"";
+            args = string.Format(args, format, directory, filename);
+            ProcessStartInfo startInfo = new ProcessStartInfo("bin\\texconv.exe", args);
+            startInfo.CreateNoWindow = true;
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardOutput = true;
+            Process texconv = Process.Start(startInfo);
+            texconv.WaitForExit();
+
+            byte[] result = null;
+            if (!File.Exists(outPath))
+            {
+                AppendLog("Conversion failed: {0}\\{1}", directory, filename);
+            }
+            else
+            {
+                result = File.ReadAllBytes(outPath);
+                File.Delete(outPath);
+            }
+            return result;
         }
 
         public int GetLogLength()
@@ -324,8 +380,9 @@ namespace DSR_TPUP
                 return log[i];
         }
 
-        private void AppendLog(string line)
+        private void AppendLog(string format, params object[] args)
         {
+            string line = string.Format(format, args);
             lock (log)
                 log.Add(line);
         }

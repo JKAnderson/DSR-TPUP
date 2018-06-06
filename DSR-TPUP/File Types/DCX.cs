@@ -11,6 +11,10 @@ namespace DSR_TPUP
 
         public DCX(byte[] compressed)
         {
+            string magic = compressed.ReadString(0x0, 4);
+            if (magic != "DCX")
+                throw new FormatException("Invalid DCX magic characters: " + magic);
+
             Type = compressed.ReadString(0x28);
             switch (Type)
             {
