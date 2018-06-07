@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -300,12 +301,31 @@ namespace DSR_TPUP
                     if (repack)
                     {
                         byte[] ddsBytes = null;
-                        DDS.DXGI_FORMAT originalFormat = DDS.GetFormat(tpfEntry.Bytes);
+                        DDS.DXGI_FORMAT originalFormat;
+                        try
+                        {
+                            originalFormat = DDS.GetFormat(tpfEntry.Bytes);
+                        }
+                        catch (FormatException)
+                        {
+                            originalFormat = DDS.DXGI_FORMAT.UNKNOWN;
+                        }
+
                         if (File.Exists(ddsPath) || File.Exists(ddsPath + "2"))
                         {
                             ddsBytes = File.Exists(ddsPath) ? File.ReadAllBytes(ddsPath) : File.ReadAllBytes(ddsPath + "2");
-                            DDS.DXGI_FORMAT newFormat = DDS.GetFormat(ddsBytes);
-                            if (originalFormat != newFormat)
+                            DDS.DXGI_FORMAT newFormat;
+                            try
+                            {
+                                newFormat = DDS.GetFormat(ddsBytes);
+                            }
+                            catch (FormatException)
+                            {
+                                AppendLog("Error: could not determine format of file {0}", ddsPath);
+                                newFormat = DDS.DXGI_FORMAT.UNKNOWN;
+                            }
+
+                            if (originalFormat != DDS.DXGI_FORMAT.UNKNOWN && newFormat != DDS.DXGI_FORMAT.UNKNOWN && originalFormat != newFormat)
                             {
                                 AppendLog("Warning: expected format {0}, got format {1}. Converting {2}...",
                                     originalFormat, newFormat, subpath + "\\" + name + ".dds");
@@ -314,8 +334,13 @@ namespace DSR_TPUP
                         }
                         else if (File.Exists(pngPath))
                         {
-                            AppendLog("Warning: .png is supported, but not recommended. Converting {0}...", subpath + "\\" + name + ".png");
-                            ddsBytes = convertFile(baseDir + "\\" + subpath, name + ".png", originalFormat, true);
+                            if (originalFormat != DDS.DXGI_FORMAT.UNKNOWN)
+                            {
+                                AppendLog("Warning: .png is supported, but not recommended. Converting {0}...", subpath + "\\" + name + ".png");
+                                ddsBytes = convertFile(baseDir + "\\" + subpath, name + ".png", originalFormat, true);
+                            }
+                            else
+                                AppendLog("Error: could not convert .png {0}", pngPath);
                         }
 
                         if (ddsBytes != null)

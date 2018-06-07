@@ -33,6 +33,11 @@ namespace DSR_TPUP
             ["DXT3"] = DXGI_FORMAT.BC2_UNORM,
             ["DXT4"] = DXGI_FORMAT.BC3_UNORM,
             ["DXT5"] = DXGI_FORMAT.BC3_UNORM,
+            ["BC4U"] = DXGI_FORMAT.BC4_UNORM,
+            ["BC4S"] = DXGI_FORMAT.BC4_SNORM,
+            ["ATI2"] = DXGI_FORMAT.BC5_UNORM,
+            ["BC5U"] = DXGI_FORMAT.BC4_UNORM,
+            ["BC5S"] = DXGI_FORMAT.BC5_SNORM
         };
 
         public enum DXGI_FORMAT : uint
