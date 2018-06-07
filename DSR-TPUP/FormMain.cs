@@ -88,6 +88,14 @@ namespace DSR_TPUP
         {
             folderBrowserDialog1.Description = "Select your game install directory";
             folderBrowserDialog1.RootFolder = Environment.SpecialFolder.MyComputer;
+            try
+            {
+                folderBrowserDialog1.SelectedPath = Path.GetFullPath(txtGameDir.Text);
+            }
+            catch (ArgumentException)
+            {
+                folderBrowserDialog1.SelectedPath = "";
+            }
             folderBrowserDialog1.SelectedPath = txtGameDir.Text;
             folderBrowserDialog1.ShowNewFolderButton = false;
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
@@ -98,7 +106,14 @@ namespace DSR_TPUP
         {
             folderBrowserDialog1.Description = "Select the directory to unpack textures into";
             folderBrowserDialog1.RootFolder = Environment.SpecialFolder.MyComputer;
-            folderBrowserDialog1.SelectedPath = txtUnpackDir.Text;
+            try
+            {
+                folderBrowserDialog1.SelectedPath = Path.GetFullPath(txtUnpackDir.Text);
+            }
+            catch (ArgumentException)
+            {
+                folderBrowserDialog1.SelectedPath = "";
+            }
             folderBrowserDialog1.ShowNewFolderButton = true;
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
                 txtUnpackDir.Text = folderBrowserDialog1.SelectedPath;
@@ -150,9 +165,16 @@ namespace DSR_TPUP
         {
             folderBrowserDialog1.Description = "Select the directory to load texture overrides from";
             folderBrowserDialog1.RootFolder = Environment.SpecialFolder.MyComputer;
-            folderBrowserDialog1.SelectedPath = txtRepackDir.Text;
+            try
+            {
+                folderBrowserDialog1.SelectedPath = Path.GetFullPath(txtRepackDir.Text);
+            }
+            catch (ArgumentException)
+            {
+                folderBrowserDialog1.SelectedPath = "";
+            }
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
-                txtUnpackDir.Text = folderBrowserDialog1.SelectedPath;
+                txtRepackDir.Text = folderBrowserDialog1.SelectedPath;
         }
 
         private void btnRepack_Click(object sender, EventArgs e)
