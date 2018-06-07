@@ -44,6 +44,9 @@ To install texture mods, copy the contents of their override folder into your ow
 
 # Changelog
 
+### 1.2
+* Fixed crash when repacking certain files
+
 ### 1.1
 * Improperly formatted textures will now be automatically converted when repacking
 * Included dsfix.txt to aid porting DS1 texture packs

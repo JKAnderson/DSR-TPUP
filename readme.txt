@@ -1,5 +1,5 @@
 
---| DSR Texture Packer & Unpacker 1.1
+--| DSR Texture Packer & Unpacker 1.2
 --| https://www.nexusmods.com/darksoulsremastered/mods/9
 --| https://github.com/JKAnderson/DSR-TPUP
 
@@ -60,6 +60,9 @@ https://github.com/maxhauser/semver
 
 
 --| Changelog
+
+1.2
+	Fixed crash when repacking certain files
 
 1.1
 	Improperly formatted textures will now be automatically converted when repacking
