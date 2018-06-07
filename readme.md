@@ -34,9 +34,9 @@ To distribute your textures, I recommend including the entire override folder (w
 To install texture mods, copy the contents of their override folder into your own, or otherwise follow the author's instructions. Once the files are in place, open the app, verify that the Game Directory is set correctly, then switch to the Repack tab and click the Repack button. The game's files will be edited to include your texture overrides, and any modified files will be backed up. To revert all modded textures, click the Restore button in the app to restore all backed-up files.
 
 # Credits
-[DirectXTex](https://github.com/Microsoft/DirectXTex) by Microsoft Corp
+[Costura.Fody](https://github.com/Fody/Costura) by Simon Cropp, Cameron MacFarland
 
-[LowLevelHooking](https://github.com/jnm2/LowLevelHooking) by Joseph N. Musser II
+[DirectXTex](https://github.com/Microsoft/DirectXTex) by Microsoft Corp
 
 [Octokit](https://github.com/octokit/octokit.net) by GitHub
 

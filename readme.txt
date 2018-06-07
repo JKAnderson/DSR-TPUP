@@ -41,11 +41,11 @@ To install texture mods, copy the contents of their override folder into your ow
 
 --| Credits
 
+Costura.Fody by Simon Cropp, Cameron MacFarland
+https://github.com/Fody/Costura
+
 DirectXTex by Microsoft Corp
 https://github.com/Microsoft/DirectXTex
-
-LowLevelHooking by Joseph N. Musser II
-https://github.com/jnm2/LowLevelHooking
 
 Octokit by GitHub
 https://github.com/octokit/octokit.net
