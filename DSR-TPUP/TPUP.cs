@@ -124,12 +124,14 @@ namespace DSR_TPUP
                     if (dcx != null)
                         subpath = subpath.Substring(0, subpath.Length - decompressedExtension.Length);
 
+                    bool edited = false;
                     switch (decompressedExtension)
                     {
                         case ".tpf":
                             TPF tpf = new TPF(bytes);
-                            if (processTPF(tpf, targetDir + "\\" + subpath, repack))
+                            if (processTPF(tpf, targetDir, subpath, repack))
                             {
+                                edited = true;
                                 byte[] tpfBytes = tpf.Repack();
                                 if (dcx != null)
                                 {
@@ -149,8 +151,9 @@ namespace DSR_TPUP
                             {
                                 byte[] bdtBytes = File.ReadAllBytes(bdtPath);
                                 BDT bdt = new BDT(bdtBytes, bhd);
-                                if (processBHD(bhd, bdt, targetDir + "\\" + subpath, repack))
+                                if (processBHD(bhd, bdt, targetDir, subpath, repack))
                                 {
+                                    edited = true;
                                     (byte[], byte[]) repacked = bhd.Repack(bdt);
                                     if (dcx != null)
                                     {
@@ -171,15 +174,13 @@ namespace DSR_TPUP
                         case ".objbnd":
                         case ".partsbnd":
                             BND bnd = new BND(bytes);
-                            bool edited = false;
                             foreach (BNDEntry entry in bnd.Files)
                             {
                                 string entryExtension = Path.GetExtension(entry.Filename);
                                 if (entryExtension == ".tpf")
                                 {
-                                    string subsubpath = subpath + "\\" + Path.GetFileNameWithoutExtension(entry.Filename);
                                     TPF bndTPF = new TPF(entry.Bytes);
-                                    if (processTPF(bndTPF, targetDir + "\\" + subpath, repack))
+                                    if (processTPF(bndTPF, targetDir, subpath, repack))
                                     {
                                         entry.Bytes = bndTPF.Repack();
                                         edited = true;
@@ -197,7 +198,7 @@ namespace DSR_TPUP
                                     {
                                         byte[] bdtBytes = File.ReadAllBytes(bndBDTPath);
                                         BDT bndBDT = new BDT(bdtBytes, bndBHD);
-                                        if (processBHD(bndBHD, bndBDT, targetDir + "\\" + subpath, repack))
+                                        if (processBHD(bndBHD, bndBDT, targetDir, subpath, repack))
                                         {
                                             (byte[], byte[]) repacked = bndBHD.Repack(bndBDT);
                                             entry.Bytes = repacked.Item1;
@@ -222,6 +223,9 @@ namespace DSR_TPUP
                             }
                             break;
                     }
+
+                    if (repack && !edited)
+                        AppendLog("No overrides found for {0}", relative);
                 }
             }
         }
@@ -233,7 +237,7 @@ namespace DSR_TPUP
             File.WriteAllBytes(path, bytes);
         }
 
-        private bool processBHD(BHD bhd, BDT bdt, string directory, bool repack)
+        private bool processBHD(BHD bhd, BDT bdt, string baseDir, string subpath, bool repack)
         {
             bool edited = false;
             foreach (BDTEntry bdtEntry in bdt.Files)
@@ -251,7 +255,7 @@ namespace DSR_TPUP
                 if (bdtEntryExtension == ".tpf")
                 {
                     TPF tpf = new TPF(bdtEntryBytes);
-                    if (processTPF(tpf, directory, repack))
+                    if (processTPF(tpf, baseDir, subpath, repack))
                     {
                         bdtEntry.Bytes = tpf.Repack();
                         if (bdtDCX != null)
@@ -266,10 +270,10 @@ namespace DSR_TPUP
             return edited;
         }
 
-        private bool processTPF(TPF tpf, string directory, bool repack)
+        private bool processTPF(TPF tpf, string baseDir, string subpath, bool repack)
         {
             if (!repack && tpf.Files.Count > 0)
-                Directory.CreateDirectory(directory);
+                Directory.CreateDirectory(baseDir + "\\" + subpath);
 
             List<string> names = new List<string>();
             List<string> dupes = new List<string>();
@@ -288,8 +292,8 @@ namespace DSR_TPUP
                 string name = tpfEntry.Name;
                 if (dupes.Contains(name))
                     name += "_" + i;
-                string ddsPath = directory + "\\" + name + ".dds";
-                string pngPath = directory + "\\" + name + ".png";
+                string ddsPath = baseDir + "\\" + subpath + "\\" + name + ".dds";
+                string pngPath = baseDir + "\\" + subpath + "\\" + name + ".png";
 
                 lock (writeLock)
                 {
@@ -303,14 +307,15 @@ namespace DSR_TPUP
                             DDS.DXGI_FORMAT newFormat = DDS.GetFormat(ddsBytes);
                             if (originalFormat != newFormat)
                             {
-                                AppendLog("Warning: expected format {0}, got format {1}. Converting {2}...", originalFormat, newFormat, ddsPath);
-                                ddsBytes = convertFile(directory, name + ".dds", originalFormat, false);
+                                AppendLog("Warning: expected format {0}, got format {1}. Converting {2}...",
+                                    originalFormat, newFormat, subpath + "\\" + name + ".dds");
+                                ddsBytes = convertFile(baseDir + "\\" + subpath, name + ".dds", originalFormat, false);
                             }
                         }
                         else if (File.Exists(pngPath))
                         {
-                            AppendLog("Warning: .png is supported, but not recommended. Converting {0}...", pngPath);
-                            ddsBytes = convertFile(directory, name + ".png", originalFormat, true);
+                            AppendLog("Warning: .png is supported, but not recommended. Converting {0}...", subpath + "\\" + name + ".png");
+                            ddsBytes = convertFile(baseDir + "\\" + subpath, name + ".png", originalFormat, true);
                         }
 
                         if (ddsBytes != null)
