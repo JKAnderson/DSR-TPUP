@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using TeximpNet.DDS;
 
 namespace DSR_TPUP
 {
@@ -37,6 +37,18 @@ namespace DSR_TPUP
         {
             log = new List<string>();
             threads = new Thread[threadCount];
+        }
+
+        public int GetLogLength()
+        {
+            lock (log)
+                return log.Count;
+        }
+
+        public string GetLogLine(int i)
+        {
+            lock (log)
+                return log[i];
         }
 
         public void ProcessFile(string gameDir, string looseDir, bool repack)
@@ -110,9 +122,9 @@ namespace DSR_TPUP
 
                     DCX dcx = null;
                     if (repack)
-                        AppendLog("Checking: " + relative);
+                        appendLog("Checking: " + relative);
                     else
-                        AppendLog("Unpacking: " + relative);
+                        appendLog("Unpacking: " + relative);
 
                     byte[] bytes = File.ReadAllBytes(absolute);
                     if (extension == ".dcx")
@@ -226,7 +238,7 @@ namespace DSR_TPUP
                     }
 
                     if (repack && !edited)
-                        AppendLog("No overrides found for {0}", relative);
+                        appendLog("No overrides found for {0}", relative);
                 }
             }
         }
@@ -271,10 +283,10 @@ namespace DSR_TPUP
             return edited;
         }
 
-        private bool processTPF(TPF tpf, string baseDir, string subpath, bool repack)
+        private bool processTPF(TPF tpf, string baseDir, string subDir, bool repack)
         {
             if (!repack && tpf.Files.Count > 0)
-                Directory.CreateDirectory(baseDir + "\\" + subpath);
+                Directory.CreateDirectory(baseDir + "\\" + subDir);
 
             List<string> names = new List<string>();
             List<string> dupes = new List<string>();
@@ -293,64 +305,52 @@ namespace DSR_TPUP
                 string name = tpfEntry.Name;
                 if (dupes.Contains(name))
                     name += "_" + i;
-                string ddsPath = baseDir + "\\" + subpath + "\\" + name + ".dds";
-                string pngPath = baseDir + "\\" + subpath + "\\" + name + ".png";
+                string subPath = subDir + "\\" + name + ".dds";
+                string ddsPath = baseDir + "\\" + subPath;
 
                 lock (writeLock)
                 {
                     if (repack)
                     {
-                        byte[] ddsBytes = null;
-                        DDS.DXGI_FORMAT originalFormat;
-                        try
-                        {
-                            originalFormat = DDS.GetFormat(tpfEntry.Bytes);
-                        }
-                        catch (FormatException)
-                        {
-                            originalFormat = DDS.DXGI_FORMAT.UNKNOWN;
-                        }
+                        if (!File.Exists(ddsPath) && File.Exists(ddsPath + "2"))
+                            ddsPath += "2";
 
-                        if (File.Exists(ddsPath) || File.Exists(ddsPath + "2"))
+                        if (File.Exists(ddsPath))
                         {
-                            ddsBytes = File.Exists(ddsPath) ? File.ReadAllBytes(ddsPath) : File.ReadAllBytes(ddsPath + "2");
-                            DDS.DXGI_FORMAT newFormat;
-                            try
+                            byte[] ddsBytes = File.ReadAllBytes(ddsPath);
+                            DXGIFormat originalFormat = DDSFile.Read(new MemoryStream(tpfEntry.Bytes)).Format;
+                            DXGIFormat newFormat = DDSFile.Read(new MemoryStream(ddsBytes)).Format;
+
+                            if (originalFormat == DXGIFormat.Unknown)
+                                appendLog(string.Format("Error: {0}", subPath),
+                                    string.Format("\u2514\u2500 Could not determine format of game file."));
+
+                            if (newFormat == DXGIFormat.Unknown)
+                                appendLog(string.Format("Error: {0}", subPath),
+                                    string.Format("\u2514\u2500 Could not determine format of override file."));
+
+                            if (originalFormat != DXGIFormat.Unknown && newFormat != DXGIFormat.Unknown && originalFormat != newFormat)
                             {
-                                newFormat = DDS.GetFormat(ddsBytes);
-                            }
-                            catch (FormatException)
-                            {
-                                AppendLog("Error: could not determine format of file {0}", ddsPath);
-                                newFormat = DDS.DXGI_FORMAT.UNKNOWN;
+                                appendLog(string.Format("Warning: {0}", subPath),
+                                    string.Format("\u2514\u2500 Expected format {0}, got format {1}. Converting...",
+                                        printDXGIFormat(originalFormat), printDXGIFormat(newFormat)));
+
+                                byte[] newBytes = convertFile(ddsPath, originalFormat);
+                                if (newBytes != null)
+                                    ddsBytes = newBytes;
                             }
 
-                            if (originalFormat != DDS.DXGI_FORMAT.UNKNOWN && newFormat != DDS.DXGI_FORMAT.UNKNOWN && originalFormat != newFormat)
-                            {
-                                AppendLog("Warning: expected format {0}, got format {1}. Converting {2}...",
-                                    originalFormat, newFormat, subpath + "\\" + name + ".dds");
-                                ddsBytes = convertFile(baseDir + "\\" + subpath, name + ".dds", originalFormat, false);
-                            }
-                        }
-                        else if (File.Exists(pngPath))
-                        {
-                            if (originalFormat != DDS.DXGI_FORMAT.UNKNOWN)
-                            {
-                                AppendLog("Warning: .png is supported, but not recommended. Converting {0}...", subpath + "\\" + name + ".png");
-                                ddsBytes = convertFile(baseDir + "\\" + subpath, name + ".png", originalFormat, true);
-                            }
-                            else
-                                AppendLog("Error: could not convert .png {0}", pngPath);
-                        }
-
-                        if (ddsBytes != null)
-                        {
                             tpfEntry.Bytes = ddsBytes;
                             edited = true;
                         }
                     }
                     else
                     {
+                        MemoryStream stream = new MemoryStream(tpfEntry.Bytes);
+                        DDSContainer dds = DDSFile.Read(stream);
+                        if (dds.Format == DXGIFormat.Unknown)
+                            throw null;
+
                         if (!File.Exists(ddsPath))
                             File.WriteAllBytes(ddsPath, tpfEntry.Bytes);
                         else
@@ -362,21 +362,39 @@ namespace DSR_TPUP
             return edited;
         }
 
-        private byte[] convertFile(string directory, string filename, DDS.DXGI_FORMAT format, bool srgb)
+        private static Dictionary<DXGIFormat, string> dxgiFormatOverride = new Dictionary<DXGIFormat, string>()
+        {
+            [DXGIFormat.BC1_UNorm] = "DXT1",
+            [DXGIFormat.BC2_UNorm] = "DXT3",
+            [DXGIFormat.BC3_UNorm] = "DXT5",
+            [DXGIFormat.Opaque_420] = "420_OPAQUE",
+        };
+
+        private static string printDXGIFormat(DXGIFormat format)
+        {
+            if (dxgiFormatOverride.ContainsKey(format))
+                return dxgiFormatOverride[format];
+            else
+                return format.ToString().ToUpper();
+        }
+
+        private byte[] convertFile(string filepath, DXGIFormat format)
         {
             if (!File.Exists("bin\\texconv.exe"))
-                throw new FileNotFoundException("texconv.exe not found in bin folder");
+            {
+                appendLog("Error: texconv.exe not found in bin folder");
+                return null;
+            }
 
+            filepath = Path.GetFullPath(filepath);
+            string directory = Path.GetDirectoryName(filepath);
+            string filename = Path.GetFileName(filepath);
             string noExtension = Path.GetFileNameWithoutExtension(filename);
             string outPath = directory + "\\texconv_" + noExtension + ".dds";
             if (File.Exists(outPath))
                 File.Delete(outPath);
 
-            string args;
-            if (srgb)
-                args = "-px texconv_ -srgbo -f {0} -o \"{1}\" \"{1}\\{2}\"";
-            else
-                args = "-px texconv_ -f {0} -o \"{1}\" \"{1}\\{2}\"";
+            string args = "-px texconv_ -f {0} -o \"{1}\" \"{1}\\{2}\"";
             args = string.Format(args, format, directory, filename);
             ProcessStartInfo startInfo = new ProcessStartInfo("bin\\texconv.exe", args);
             startInfo.CreateNoWindow = true;
@@ -388,7 +406,7 @@ namespace DSR_TPUP
             byte[] result = null;
             if (!File.Exists(outPath))
             {
-                AppendLog("Conversion failed: {0}\\{1}", directory, filename);
+                appendLog("Conversion failed: {0}\\{1}", directory, filename);
             }
             else
             {
@@ -398,23 +416,20 @@ namespace DSR_TPUP
             return result;
         }
 
-        public int GetLogLength()
-        {
-            lock (log)
-                return log.Count;
-        }
-
-        public string GetLogLine(int i)
-        {
-            lock (log)
-                return log[i];
-        }
-
-        private void AppendLog(string format, params object[] args)
+        private void appendLog(string format, params object[] args)
         {
             string line = string.Format(format, args);
             lock (log)
                 log.Add(line);
+        }
+
+        private void appendLog(params string[] lines)
+        {
+            lock (log)
+            {
+                foreach (string line in lines)
+                    log.Add(line);
+            }
         }
     }
 }

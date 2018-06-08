@@ -1,5 +1,5 @@
 
---| DSR Texture Packer & Unpacker 1.2
+--| DSR Texture Packer & Unpacker 1.3
 --| https://www.nexusmods.com/darksoulsremastered/mods/9
 --| https://github.com/JKAnderson/DSR-TPUP
 
@@ -17,7 +17,7 @@ TPUP serves two purposes:
 --| Instructions
 
 If you're more of a visual learner, please watch this video going over the instructions: https://youtu.be/D7zEDHe-Acw
-Otherwise, read on.
+However, if you intend to create your own mods, please read the rest of this file as well.
 
 First, download the tool and extract the entire folder wherever you like. After launching it, make sure the Game Directory field points to the folder where your game is installed (the folder that contains DarkSoulsRemastered.exe.) You may also change where unpacked textures are dumped to or where texture overrides are loaded from, but I recommend leaving those with the default.
 
@@ -28,7 +28,7 @@ Unpacking the game's textures is only required if you want to make your own mods
 
 Once it finishes, find the texture you want to edit in the Dump folder, and place your replacement in the same relative directory in the Override folder. For instance, if you want to override Texture Dump\menu\menu_0\Title.dds, the replacement file should be at Texture Override\menu\menu_0\Title.dds.
 
-If you're trying to port old dsfix textures, search for the hash in dsfix.txt; in many cases the DSR path will be different from the DS1 path, but it should give you a good idea of where to start looking.
+If you're trying to port old dsfix textures, search for the hash in dsfix.txt; in many cases the DSR path will be different from the DS1 path, but it should give you a good idea of where to start looking. Some hashes will not appear in the file at all due to technical reasons that may or not be resolved at some point.
 
 When repacking the textures, you will be warned if any files are in formats which do not match the vanilla files. It is highly recommended to go back afterwards and resave these textures yourself instead of relying on the automatic conversion.
 
@@ -58,8 +58,18 @@ https://github.com/octokit/octokit.net
 Semver by Max Hauser
 https://github.com/maxhauser/semver
 
+TeximpNet by Nicholas Woodfield
+https://bitbucket.org/Starnick/teximpnet
+
 
 --| Changelog
+
+1.3
+	Format detection should be more reliable now
+	More robust error handling
+	Window can be resized
+	Fix browsing for a repack folder changing the unpack folder instead
+	Removed secret .png support (sorry)
 
 1.2
 	Fixed crash when repacking certain files

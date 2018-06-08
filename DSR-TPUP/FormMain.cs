@@ -28,6 +28,10 @@ namespace DSR_TPUP
         {
             Text = "DSR Texture Packer & Unpacker " + System.Windows.Forms.Application.ProductVersion;
             Location = settings.WindowLocation;
+            Size = settings.WindowSize;
+            if (settings.WindowMaximized)
+                WindowState = FormWindowState.Maximized;
+
             txtGameDir.Text = settings.GameDir;
             txtUnpackDir.Text = settings.UnpackDir;
             txtRepackDir.Text = settings.RepackDir;
@@ -73,10 +77,18 @@ namespace DSR_TPUP
             }
             else
             {
+                settings.WindowMaximized = WindowState == FormWindowState.Maximized;
                 if (WindowState == FormWindowState.Normal)
+                {
                     settings.WindowLocation = Location;
+                    settings.WindowSize = Size;
+                }
                 else
+                {
                     settings.WindowLocation = RestoreBounds.Location;
+                    settings.WindowSize = RestoreBounds.Size;
+                }
+
                 settings.GameDir = txtGameDir.Text;
                 settings.UnpackDir = txtUnpackDir.Text;
                 settings.RepackDir = txtRepackDir.Text;
@@ -149,14 +161,46 @@ namespace DSR_TPUP
 
                 if (result == DialogResult.OK)
                 {
-                    if (Directory.Exists(unpackDir))
-                        Directory.Delete(unpackDir, true);
-                    enableControls(false);
-                    txtLog.Clear();
-                    appendLog("Unpacking all textures...");
-                    tpup = new TPUP(Environment.ProcessorCount);
-                    tpupThread = new Thread(() => tpup.ProcessFile(txtGameDir.Text, unpackDir, false));
-                    tpupThread.Start();
+                    bool proceed = true;
+
+                    try
+                    {
+                        if (Directory.Exists(unpackDir))
+                            Directory.Delete(unpackDir, true);
+                    }
+                    catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                    {
+                        MessageBox.Show("Unpack directory could not be deleted. Try running as Administrator.\n"
+                            + "Reason: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        proceed = false;
+                    }
+
+                    try
+                    {
+                        if (proceed)
+                        {
+                            Directory.CreateDirectory(unpackDir);
+                            File.WriteAllText(unpackDir + "\\tpup_test.txt",
+                                "Test file to see if TPUP can write to this directory.");
+                            File.Delete(unpackDir + "\\tpup_test.txt");
+                        }
+                    }
+                    catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                    {
+                        MessageBox.Show("Unpack directory could not be written to. Try running as Administrator.\n"
+                            + "Reason: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        proceed = false;
+                    }
+
+                    if (proceed)
+                    {
+                        enableControls(false);
+                        txtLog.Clear();
+                        appendLog("Unpacking all textures...");
+                        tpup = new TPUP(Environment.ProcessorCount);
+                        tpupThread = new Thread(() => tpup.ProcessFile(txtGameDir.Text, unpackDir, false));
+                        tpupThread.Start();
+                    }
                 }
             }
         }
@@ -179,24 +223,44 @@ namespace DSR_TPUP
 
         private void btnRepack_Click(object sender, EventArgs e)
         {
-            if (!Directory.Exists(txtGameDir.Text))
+            string gameDir = txtGameDir.Text;
+            string repackDir = txtRepackDir.Text;
+
+            if (!Directory.Exists(gameDir))
             {
-                MessageBox.Show("Game directory not found:\n" + txtGameDir.Text,
+                MessageBox.Show("Game directory not found:\n" + gameDir,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            else if (!Directory.Exists(txtRepackDir.Text))
+            else if (!Directory.Exists(repackDir))
             {
-                MessageBox.Show("Override directory not found:\n" + txtRepackDir.Text,
+                MessageBox.Show("Override directory not found:\n" + repackDir,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
-                enableControls(false);
-                txtLog.Clear();
-                appendLog("Repacking overridden textures...");
-                tpup = new TPUP(Environment.ProcessorCount);
-                tpupThread = new Thread(() => tpup.ProcessFile(txtGameDir.Text, txtRepackDir.Text, true));
-                tpupThread.Start();
+                bool proceed = true;
+                try
+                {
+                    File.WriteAllText(repackDir + "\\tpup_test.txt",
+                        "Test file to see if TPUP can write to this directory.");
+                    File.Delete(repackDir + "\\tpup_test.txt");
+                }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                {
+                    MessageBox.Show("Repack directory could not be written to. Try running as Administrator.\n"
+                            + "Reason: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    proceed = false;
+                }
+
+                if (proceed)
+                {
+                    enableControls(false);
+                    txtLog.Clear();
+                    appendLog("Repacking overridden textures...");
+                    tpup = new TPUP(Environment.ProcessorCount);
+                    tpupThread = new Thread(() => tpup.ProcessFile(gameDir, repackDir, true));
+                    tpupThread.Start();
+                }
             }
         }
 

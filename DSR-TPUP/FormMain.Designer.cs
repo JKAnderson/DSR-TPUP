@@ -60,7 +60,7 @@
             // lblGameDir
             // 
             this.lblGameDir.AutoSize = true;
-            this.lblGameDir.Location = new System.Drawing.Point(22, 9);
+            this.lblGameDir.Location = new System.Drawing.Point(19, 9);
             this.lblGameDir.Name = "lblGameDir";
             this.lblGameDir.Size = new System.Drawing.Size(80, 13);
             this.lblGameDir.TabIndex = 0;
@@ -70,7 +70,7 @@
             // 
             this.txtGameDir.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtGameDir.Location = new System.Drawing.Point(22, 25);
+            this.txtGameDir.Location = new System.Drawing.Point(22, 27);
             this.txtGameDir.Name = "txtGameDir";
             this.txtGameDir.Size = new System.Drawing.Size(627, 20);
             this.txtGameDir.TabIndex = 3;
@@ -86,12 +86,12 @@
             this.txtLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtLog.Location = new System.Drawing.Point(12, 188);
+            this.txtLog.Location = new System.Drawing.Point(12, 190);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(728, 274);
+            this.txtLog.Size = new System.Drawing.Size(728, 272);
             this.txtLog.TabIndex = 5;
             // 
             // tclMain
@@ -100,7 +100,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tclMain.Controls.Add(this.tpgUnpack);
             this.tclMain.Controls.Add(this.tpgRepack);
-            this.tclMain.Location = new System.Drawing.Point(12, 51);
+            this.tclMain.Location = new System.Drawing.Point(12, 53);
             this.tclMain.Name = "tclMain";
             this.tclMain.SelectedIndex = 0;
             this.tclMain.Size = new System.Drawing.Size(728, 102);
@@ -221,7 +221,7 @@
             // btnGameBrowse
             // 
             this.btnGameBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnGameBrowse.Location = new System.Drawing.Point(655, 23);
+            this.btnGameBrowse.Location = new System.Drawing.Point(655, 25);
             this.btnGameBrowse.Name = "btnGameBrowse";
             this.btnGameBrowse.Size = new System.Drawing.Size(75, 23);
             this.btnGameBrowse.TabIndex = 7;
@@ -231,7 +231,8 @@
             // 
             // btnRestore
             // 
-            this.btnRestore.Location = new System.Drawing.Point(655, 159);
+            this.btnRestore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRestore.Location = new System.Drawing.Point(655, 161);
             this.btnRestore.Name = "btnRestore";
             this.btnRestore.Size = new System.Drawing.Size(75, 23);
             this.btnRestore.TabIndex = 8;
@@ -242,7 +243,8 @@
             // 
             // btnAbort
             // 
-            this.btnAbort.Location = new System.Drawing.Point(574, 159);
+            this.btnAbort.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnAbort.Location = new System.Drawing.Point(574, 161);
             this.btnAbort.Name = "btnAbort";
             this.btnAbort.Size = new System.Drawing.Size(75, 23);
             this.btnAbort.TabIndex = 9;
@@ -279,8 +281,6 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(752, 474);
-            this.Controls.Add(this.llbUpdate);
-            this.Controls.Add(this.lblUpdate);
             this.Controls.Add(this.btnAbort);
             this.Controls.Add(this.btnRestore);
             this.Controls.Add(this.btnGameBrowse);
@@ -288,8 +288,10 @@
             this.Controls.Add(this.txtLog);
             this.Controls.Add(this.txtGameDir);
             this.Controls.Add(this.lblGameDir);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Controls.Add(this.llbUpdate);
+            this.Controls.Add(this.lblUpdate);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MinimumSize = new System.Drawing.Size(400, 300);
             this.Name = "FormMain";
             this.Text = "DSR Texture Packer/Unpacker <version>";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);

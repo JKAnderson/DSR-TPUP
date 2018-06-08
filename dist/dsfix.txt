@@ -1,6 +1,7 @@
 
 This file contains a list of dsfix hashed filenames, and the true path to those files in Dark Souls 1.
 These paths will often not match the DSR paths exactly, but should give you a place to start looking.
+Some hashes will not appear in the file at all due to technical reasons that may or not be resolved at some point.
 
 Hash     DS1 Path
 ----------------------------------------------------------------
