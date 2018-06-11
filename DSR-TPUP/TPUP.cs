@@ -160,12 +160,12 @@ namespace DSR_TPUP
                                 {
                                     (DXGIFormat, int, int) dds = reports[filepath];
                                     sb.AppendFormat("File:   {0}\r\nFormat: {1}\r\nSize:   {2}x{3}\r\n\r\n",
-                                        filepath.Substring(gameDir.Length - 1), printDXGIFormat(dds.Item1), dds.Item2, dds.Item3);
+                                        Path.GetFileName(filepath), printDXGIFormat(dds.Item1), dds.Item2, dds.Item3);
                                 }
                                 else
                                     sb.AppendFormat("File:   {0}\r\nFormat: Unknown\r\nSize:   Unknown\r\n\r\n");
                             }
-                            File.WriteAllText(dirPath + "\\report.txt", sb.ToString().TrimEnd());
+                            File.WriteAllText(dirPath + "\\_report.txt", sb.ToString().TrimEnd());
                         }
                     }
                 }
