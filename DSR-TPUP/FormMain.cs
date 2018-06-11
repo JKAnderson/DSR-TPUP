@@ -3,6 +3,7 @@ using Semver;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Media;
 using System.Net.Http;
 using System.Threading;
 using System.Windows.Forms;
@@ -16,7 +17,7 @@ namespace DSR_TPUP
 
         private TPUP tpup;
         private Thread tpupThread;
-        private int logLength;
+        private int logLength, errorLength;
         private bool abort = false;
 
         public FormMain()
@@ -36,6 +37,7 @@ namespace DSR_TPUP
             txtUnpackDir.Text = settings.UnpackDir;
             txtRepackDir.Text = settings.RepackDir;
             tclMain.SelectedIndex = settings.TabSelected;
+            spcLogs.SplitterDistance = settings.SplitterDistance;
             enableControls(true);
 
             GitHubClient gitHubClient = new GitHubClient(new ProductHeaderValue("DSR-TPUP"));
@@ -70,8 +72,7 @@ namespace DSR_TPUP
         {
             if (tpupThread?.IsAlive ?? false)
             {
-                appendLog("Stopping...");
-                tpup.Stop = true;
+                tpup.Stop();
                 e.Cancel = true;
                 abort = true;
             }
@@ -93,6 +94,7 @@ namespace DSR_TPUP
                 settings.UnpackDir = txtUnpackDir.Text;
                 settings.RepackDir = txtRepackDir.Text;
                 settings.TabSelected = tclMain.SelectedIndex;
+                settings.SplitterDistance = spcLogs.SplitterDistance;
             }
         }
 
@@ -114,6 +116,14 @@ namespace DSR_TPUP
                 txtGameDir.Text = folderBrowserDialog1.SelectedPath;
         }
 
+        private void btnGameExplore_Click(object sender, EventArgs e)
+        {
+            if (Directory.Exists(txtGameDir.Text))
+                Process.Start(Path.GetFullPath(txtGameDir.Text));
+            else
+                SystemSounds.Hand.Play();
+        }
+
         private void btnUnpackBrowse_Click(object sender, EventArgs e)
         {
             folderBrowserDialog1.Description = "Select the directory to unpack textures into";
@@ -129,6 +139,14 @@ namespace DSR_TPUP
             folderBrowserDialog1.ShowNewFolderButton = true;
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
                 txtUnpackDir.Text = folderBrowserDialog1.SelectedPath;
+        }
+
+        private void btnUnpackExplore_Click(object sender, EventArgs e)
+        {
+            if (Directory.Exists(txtUnpackDir.Text))
+                Process.Start(Path.GetFullPath(txtUnpackDir.Text));
+            else
+                SystemSounds.Hand.Play();
         }
 
         private void btnUnpack_Click(object sender, EventArgs e)
@@ -196,9 +214,12 @@ namespace DSR_TPUP
                     {
                         enableControls(false);
                         txtLog.Clear();
-                        appendLog("Unpacking all textures...");
-                        tpup = new TPUP(Environment.ProcessorCount);
-                        tpupThread = new Thread(() => tpup.ProcessFile(txtGameDir.Text, unpackDir, false));
+                        logLength = 0;
+                        errorLength = 0;
+                        pbrProgress.Value = 0;
+                        pbrProgress.Maximum = 0;
+                        tpup = new TPUP(txtGameDir.Text, unpackDir, false, Environment.ProcessorCount);
+                        tpupThread = new Thread(tpup.Start);
                         tpupThread.Start();
                     }
                 }
@@ -219,6 +240,14 @@ namespace DSR_TPUP
             }
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
                 txtRepackDir.Text = folderBrowserDialog1.SelectedPath;
+        }
+
+        private void btnRepackExplore_Click(object sender, EventArgs e)
+        {
+            if (Directory.Exists(txtRepackDir.Text))
+                Process.Start(Path.GetFullPath(txtRepackDir.Text));
+            else
+                SystemSounds.Hand.Play();
         }
 
         private void btnRepack_Click(object sender, EventArgs e)
@@ -256,9 +285,12 @@ namespace DSR_TPUP
                 {
                     enableControls(false);
                     txtLog.Clear();
-                    appendLog("Repacking overridden textures...");
-                    tpup = new TPUP(Environment.ProcessorCount);
-                    tpupThread = new Thread(() => tpup.ProcessFile(gameDir, repackDir, true));
+                    logLength = 0;
+                    errorLength = 0;
+                    pbrProgress.Value = 0;
+                    pbrProgress.Maximum = 0;
+                    tpup = new TPUP(gameDir, repackDir, true, Environment.ProcessorCount);
+                    tpupThread = new Thread(tpup.Start);
                     tpupThread.Start();
                 }
             }
@@ -266,8 +298,7 @@ namespace DSR_TPUP
 
         private void btnAbort_Click(object sender, EventArgs e)
         {
-            tpup.Stop = true;
-            appendLog("Stopping...");
+            tpup.Stop();
             btnAbort.Enabled = false;
         }
 
@@ -290,6 +321,7 @@ namespace DSR_TPUP
                     File.Move(filepath, newPath);
                     found++;
                 }
+
                 if (found > 0)
                     appendLog(found + " backups restored.");
                 else
@@ -309,17 +341,32 @@ namespace DSR_TPUP
                     logLength = newLogLength;
                 }
 
+                int newErrorLength = tpup.GetErrorLength();
+                if (newErrorLength > errorLength)
+                {
+                    for (int i = errorLength; i < newErrorLength; i++)
+                        appendError(tpup.GetErrorLine(i));
+                    errorLength = newErrorLength;
+                }
+
+                if (pbrProgress.Maximum == 0)
+                    pbrProgress.Maximum = tpup.GetProgressMax();
+                else
+                    pbrProgress.Value = tpup.GetProgress();
+
+
                 if (!tpupThread.IsAlive)
                 {
                     tpup = null;
                     tpupThread = null;
-                    logLength = 0;
+                    pbrProgress.Maximum = 0;
+                    pbrProgress.Value = 0;
                     enableControls(true);
 
                     if (abort)
                         Close();
                     else
-                        appendLog("Finished!");
+                        SystemSounds.Asterisk.Play();
                 }
             }
         }
@@ -339,6 +386,14 @@ namespace DSR_TPUP
                 txtLog.AppendText("\r\n" + line);
             else
                 txtLog.AppendText(line);
+        }
+
+        private void appendError((bool, string) line)
+        {
+            if (txtError.TextLength > 0)
+                txtError.AppendText("\r\n" + line.Item2);
+            else
+                txtError.AppendText(line.Item2);
         }
     }
 }
