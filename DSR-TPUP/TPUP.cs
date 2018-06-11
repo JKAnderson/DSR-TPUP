@@ -286,6 +286,9 @@ namespace DSR_TPUP
                             BND bnd = new BND(bytes);
                             foreach (BNDEntry entry in bnd.Files)
                             {
+                                if (stop)
+                                    break;
+
                                 string entryExtension = Path.GetExtension(entry.Filename);
                                 if (entryExtension == ".tpf")
                                 {
@@ -321,7 +324,7 @@ namespace DSR_TPUP
                                 }
                             }
 
-                            if (edited)
+                            if (edited && !stop)
                             {
                                 byte[] bndBytes = bnd.Repack();
                                 if (dcx != null)
@@ -350,6 +353,9 @@ namespace DSR_TPUP
             bool edited = false;
             foreach (BDTEntry bdtEntry in bdt.Files)
             {
+                if (stop)
+                    return false;
+
                 DCX bdtDCX = null;
                 byte[] bdtEntryBytes = bdtEntry.Bytes;
                 string bdtEntryExtension = Path.GetExtension(bdtEntry.Filename);
@@ -396,6 +402,9 @@ namespace DSR_TPUP
             bool edited = false;
             for (int i = 0; i < tpf.Files.Count; i++)
             {
+                if (stop)
+                    return false;
+
                 TPFEntry tpfEntry = tpf.Files[i];
                 string name = tpfEntry.Name;
                 if (dupes.Contains(name))
