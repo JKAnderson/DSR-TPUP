@@ -130,5 +130,17 @@ namespace DSR_TPUP.Properties {
                 this["SplitterDistance"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ConvertFile {
+            get {
+                return ((string)(this["ConvertFile"]));
+            }
+            set {
+                this["ConvertFile"] = value;
+            }
+        }
     }
 }

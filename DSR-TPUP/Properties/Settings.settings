@@ -29,5 +29,8 @@
     <Setting Name="SplitterDistance" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">149</Value>
     </Setting>
+    <Setting Name="ConvertFile" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

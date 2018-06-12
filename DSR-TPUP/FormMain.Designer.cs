@@ -35,32 +35,42 @@
             this.tmrCheckThread = new System.Windows.Forms.Timer(this.components);
             this.tclMain = new System.Windows.Forms.TabControl();
             this.tpgUnpack = new System.Windows.Forms.TabPage();
+            this.btnUnpackExplore = new System.Windows.Forms.Button();
             this.btnUnpack = new System.Windows.Forms.Button();
             this.btnUnpackBrowse = new System.Windows.Forms.Button();
             this.txtUnpackDir = new System.Windows.Forms.TextBox();
             this.lblUnpackDir = new System.Windows.Forms.Label();
             this.tpgRepack = new System.Windows.Forms.TabPage();
+            this.btnRepackExplore = new System.Windows.Forms.Button();
             this.btnRepack = new System.Windows.Forms.Button();
             this.btnRepackBrowse = new System.Windows.Forms.Button();
             this.txtRepackDir = new System.Windows.Forms.TextBox();
             this.lblRepackDir = new System.Windows.Forms.Label();
+            this.tpgConvert = new System.Windows.Forms.TabPage();
+            this.btnConvertExplore = new System.Windows.Forms.Button();
+            this.btnConvert = new System.Windows.Forms.Button();
+            this.cmbConvertFormat = new System.Windows.Forms.ComboBox();
+            this.lblConvertFormat = new System.Windows.Forms.Label();
+            this.btnConvertBrowse = new System.Windows.Forms.Button();
+            this.txtConvertFile = new System.Windows.Forms.TextBox();
+            this.lblConvertFile = new System.Windows.Forms.Label();
             this.btnGameBrowse = new System.Windows.Forms.Button();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.btnRestore = new System.Windows.Forms.Button();
             this.btnAbort = new System.Windows.Forms.Button();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.btnGameExplore = new System.Windows.Forms.Button();
             this.lblUpdate = new System.Windows.Forms.Label();
             this.llbUpdate = new System.Windows.Forms.LinkLabel();
             this.spcLogs = new System.Windows.Forms.SplitContainer();
             this.txtLog = new System.Windows.Forms.TextBox();
             this.txtError = new System.Windows.Forms.TextBox();
             this.pbrProgress = new System.Windows.Forms.ProgressBar();
-            this.btnUnpackExplore = new System.Windows.Forms.Button();
-            this.btnRepackExplore = new System.Windows.Forms.Button();
-            this.btnGameExplore = new System.Windows.Forms.Button();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.tclMain.SuspendLayout();
             this.tpgUnpack.SuspendLayout();
             this.tpgRepack.SuspendLayout();
+            this.tpgConvert.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spcLogs)).BeginInit();
             this.spcLogs.Panel1.SuspendLayout();
             this.spcLogs.Panel2.SuspendLayout();
@@ -97,10 +107,11 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tclMain.Controls.Add(this.tpgUnpack);
             this.tclMain.Controls.Add(this.tpgRepack);
+            this.tclMain.Controls.Add(this.tpgConvert);
             this.tclMain.Location = new System.Drawing.Point(12, 53);
             this.tclMain.Name = "tclMain";
             this.tclMain.SelectedIndex = 0;
-            this.tclMain.Size = new System.Drawing.Size(728, 73);
+            this.tclMain.Size = new System.Drawing.Size(728, 111);
             this.tclMain.TabIndex = 6;
             // 
             // tpgUnpack
@@ -113,15 +124,27 @@
             this.tpgUnpack.Location = new System.Drawing.Point(4, 22);
             this.tpgUnpack.Name = "tpgUnpack";
             this.tpgUnpack.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgUnpack.Size = new System.Drawing.Size(720, 47);
+            this.tpgUnpack.Size = new System.Drawing.Size(720, 85);
             this.tpgUnpack.TabIndex = 0;
             this.tpgUnpack.Text = "Unpack";
             this.tpgUnpack.UseVisualStyleBackColor = true;
             // 
+            // btnUnpackExplore
+            // 
+            this.btnUnpackExplore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnUnpackExplore.Location = new System.Drawing.Point(639, 17);
+            this.btnUnpackExplore.Name = "btnUnpackExplore";
+            this.btnUnpackExplore.Size = new System.Drawing.Size(75, 23);
+            this.btnUnpackExplore.TabIndex = 4;
+            this.btnUnpackExplore.Text = "Explore";
+            this.toolTip1.SetToolTip(this.btnUnpackExplore, "Open the output directory in Explorer");
+            this.btnUnpackExplore.UseVisualStyleBackColor = true;
+            this.btnUnpackExplore.Click += new System.EventHandler(this.btnUnpackExplore_Click);
+            // 
             // btnUnpack
             // 
             this.btnUnpack.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnUnpack.Location = new System.Drawing.Point(639, 17);
+            this.btnUnpack.Location = new System.Drawing.Point(558, 56);
             this.btnUnpack.Name = "btnUnpack";
             this.btnUnpack.Size = new System.Drawing.Size(75, 23);
             this.btnUnpack.TabIndex = 3;
@@ -133,7 +156,7 @@
             // btnUnpackBrowse
             // 
             this.btnUnpackBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnUnpackBrowse.Location = new System.Drawing.Point(477, 17);
+            this.btnUnpackBrowse.Location = new System.Drawing.Point(558, 17);
             this.btnUnpackBrowse.Name = "btnUnpackBrowse";
             this.btnUnpackBrowse.Size = new System.Drawing.Size(75, 23);
             this.btnUnpackBrowse.TabIndex = 2;
@@ -148,7 +171,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtUnpackDir.Location = new System.Drawing.Point(6, 19);
             this.txtUnpackDir.Name = "txtUnpackDir";
-            this.txtUnpackDir.Size = new System.Drawing.Size(465, 20);
+            this.txtUnpackDir.Size = new System.Drawing.Size(546, 20);
             this.txtUnpackDir.TabIndex = 1;
             this.txtUnpackDir.Text = "Texture Dump";
             // 
@@ -171,15 +194,27 @@
             this.tpgRepack.Location = new System.Drawing.Point(4, 22);
             this.tpgRepack.Name = "tpgRepack";
             this.tpgRepack.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgRepack.Size = new System.Drawing.Size(720, 47);
+            this.tpgRepack.Size = new System.Drawing.Size(720, 85);
             this.tpgRepack.TabIndex = 1;
             this.tpgRepack.Text = "Repack";
             this.tpgRepack.UseVisualStyleBackColor = true;
             // 
+            // btnRepackExplore
+            // 
+            this.btnRepackExplore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRepackExplore.Location = new System.Drawing.Point(639, 17);
+            this.btnRepackExplore.Name = "btnRepackExplore";
+            this.btnRepackExplore.Size = new System.Drawing.Size(75, 23);
+            this.btnRepackExplore.TabIndex = 8;
+            this.btnRepackExplore.Text = "Explore";
+            this.toolTip1.SetToolTip(this.btnRepackExplore, "Open the override directory in Explorer");
+            this.btnRepackExplore.UseVisualStyleBackColor = true;
+            this.btnRepackExplore.Click += new System.EventHandler(this.btnRepackExplore_Click);
+            // 
             // btnRepack
             // 
             this.btnRepack.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRepack.Location = new System.Drawing.Point(639, 17);
+            this.btnRepack.Location = new System.Drawing.Point(558, 56);
             this.btnRepack.Name = "btnRepack";
             this.btnRepack.Size = new System.Drawing.Size(75, 23);
             this.btnRepack.TabIndex = 7;
@@ -191,7 +226,7 @@
             // btnRepackBrowse
             // 
             this.btnRepackBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRepackBrowse.Location = new System.Drawing.Point(477, 17);
+            this.btnRepackBrowse.Location = new System.Drawing.Point(558, 17);
             this.btnRepackBrowse.Name = "btnRepackBrowse";
             this.btnRepackBrowse.Size = new System.Drawing.Size(75, 23);
             this.btnRepackBrowse.TabIndex = 6;
@@ -206,7 +241,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtRepackDir.Location = new System.Drawing.Point(6, 19);
             this.txtRepackDir.Name = "txtRepackDir";
-            this.txtRepackDir.Size = new System.Drawing.Size(465, 20);
+            this.txtRepackDir.Size = new System.Drawing.Size(546, 20);
             this.txtRepackDir.TabIndex = 5;
             this.txtRepackDir.Text = "Texture Override";
             // 
@@ -218,6 +253,97 @@
             this.lblRepackDir.Size = new System.Drawing.Size(92, 13);
             this.lblRepackDir.TabIndex = 4;
             this.lblRepackDir.Text = "Override Directory";
+            // 
+            // tpgConvert
+            // 
+            this.tpgConvert.Controls.Add(this.btnConvertExplore);
+            this.tpgConvert.Controls.Add(this.btnConvert);
+            this.tpgConvert.Controls.Add(this.cmbConvertFormat);
+            this.tpgConvert.Controls.Add(this.lblConvertFormat);
+            this.tpgConvert.Controls.Add(this.btnConvertBrowse);
+            this.tpgConvert.Controls.Add(this.txtConvertFile);
+            this.tpgConvert.Controls.Add(this.lblConvertFile);
+            this.tpgConvert.Location = new System.Drawing.Point(4, 22);
+            this.tpgConvert.Name = "tpgConvert";
+            this.tpgConvert.Padding = new System.Windows.Forms.Padding(3);
+            this.tpgConvert.Size = new System.Drawing.Size(720, 85);
+            this.tpgConvert.TabIndex = 2;
+            this.tpgConvert.Text = "Convert";
+            this.tpgConvert.UseVisualStyleBackColor = true;
+            // 
+            // btnConvertExplore
+            // 
+            this.btnConvertExplore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnConvertExplore.Location = new System.Drawing.Point(639, 17);
+            this.btnConvertExplore.Name = "btnConvertExplore";
+            this.btnConvertExplore.Size = new System.Drawing.Size(75, 23);
+            this.btnConvertExplore.TabIndex = 13;
+            this.btnConvertExplore.Text = "Explore";
+            this.toolTip1.SetToolTip(this.btnConvertExplore, "Open the override directory in Explorer");
+            this.btnConvertExplore.UseVisualStyleBackColor = true;
+            this.btnConvertExplore.Click += new System.EventHandler(this.btnConvertExplore_Click);
+            // 
+            // btnConvert
+            // 
+            this.btnConvert.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnConvert.Location = new System.Drawing.Point(558, 56);
+            this.btnConvert.Name = "btnConvert";
+            this.btnConvert.Size = new System.Drawing.Size(75, 23);
+            this.btnConvert.TabIndex = 12;
+            this.btnConvert.Text = "Convert";
+            this.btnConvert.UseVisualStyleBackColor = true;
+            this.btnConvert.Click += new System.EventHandler(this.btnConvert_Click);
+            // 
+            // cmbConvertFormat
+            // 
+            this.cmbConvertFormat.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmbConvertFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbConvertFormat.FormattingEnabled = true;
+            this.cmbConvertFormat.Location = new System.Drawing.Point(6, 58);
+            this.cmbConvertFormat.Name = "cmbConvertFormat";
+            this.cmbConvertFormat.Size = new System.Drawing.Size(546, 21);
+            this.cmbConvertFormat.TabIndex = 11;
+            // 
+            // lblConvertFormat
+            // 
+            this.lblConvertFormat.AutoSize = true;
+            this.lblConvertFormat.Location = new System.Drawing.Point(6, 42);
+            this.lblConvertFormat.Name = "lblConvertFormat";
+            this.lblConvertFormat.Size = new System.Drawing.Size(39, 13);
+            this.lblConvertFormat.TabIndex = 10;
+            this.lblConvertFormat.Text = "Format";
+            // 
+            // btnConvertBrowse
+            // 
+            this.btnConvertBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnConvertBrowse.Location = new System.Drawing.Point(558, 17);
+            this.btnConvertBrowse.Name = "btnConvertBrowse";
+            this.btnConvertBrowse.Size = new System.Drawing.Size(75, 23);
+            this.btnConvertBrowse.TabIndex = 9;
+            this.btnConvertBrowse.Text = "Browse";
+            this.toolTip1.SetToolTip(this.btnConvertBrowse, "Browse for your override directory");
+            this.btnConvertBrowse.UseVisualStyleBackColor = true;
+            this.btnConvertBrowse.Click += new System.EventHandler(this.btnConvertBrowse_Click);
+            // 
+            // txtConvertFile
+            // 
+            this.txtConvertFile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtConvertFile.Location = new System.Drawing.Point(6, 19);
+            this.txtConvertFile.Name = "txtConvertFile";
+            this.txtConvertFile.Size = new System.Drawing.Size(546, 20);
+            this.txtConvertFile.TabIndex = 8;
+            this.txtConvertFile.Text = "Texture Override";
+            // 
+            // lblConvertFile
+            // 
+            this.lblConvertFile.AutoSize = true;
+            this.lblConvertFile.Location = new System.Drawing.Point(6, 3);
+            this.lblConvertFile.Name = "lblConvertFile";
+            this.lblConvertFile.Size = new System.Drawing.Size(63, 13);
+            this.lblConvertFile.TabIndex = 7;
+            this.lblConvertFile.Text = "Convert File";
             // 
             // btnGameBrowse
             // 
@@ -231,10 +357,14 @@
             this.btnGameBrowse.UseVisualStyleBackColor = true;
             this.btnGameBrowse.Click += new System.EventHandler(this.btnGameBrowse_Click);
             // 
+            // folderBrowserDialog1
+            // 
+            this.folderBrowserDialog1.RootFolder = System.Environment.SpecialFolder.MyComputer;
+            // 
             // btnRestore
             // 
             this.btnRestore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRestore.Location = new System.Drawing.Point(655, 132);
+            this.btnRestore.Location = new System.Drawing.Point(655, 166);
             this.btnRestore.Name = "btnRestore";
             this.btnRestore.Size = new System.Drawing.Size(75, 23);
             this.btnRestore.TabIndex = 8;
@@ -246,7 +376,7 @@
             // btnAbort
             // 
             this.btnAbort.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAbort.Location = new System.Drawing.Point(574, 132);
+            this.btnAbort.Location = new System.Drawing.Point(574, 166);
             this.btnAbort.Name = "btnAbort";
             this.btnAbort.Size = new System.Drawing.Size(75, 23);
             this.btnAbort.TabIndex = 9;
@@ -254,6 +384,18 @@
             this.toolTip1.SetToolTip(this.btnAbort, "Stop the current operation");
             this.btnAbort.UseVisualStyleBackColor = true;
             this.btnAbort.Click += new System.EventHandler(this.btnAbort_Click);
+            // 
+            // btnGameExplore
+            // 
+            this.btnGameExplore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnGameExplore.Location = new System.Drawing.Point(655, 25);
+            this.btnGameExplore.Name = "btnGameExplore";
+            this.btnGameExplore.Size = new System.Drawing.Size(75, 23);
+            this.btnGameExplore.TabIndex = 14;
+            this.btnGameExplore.Text = "Explore";
+            this.toolTip1.SetToolTip(this.btnGameExplore, "Open the game directory in Explorer");
+            this.btnGameExplore.UseVisualStyleBackColor = true;
+            this.btnGameExplore.Click += new System.EventHandler(this.btnGameExplore_Click);
             // 
             // lblUpdate
             // 
@@ -283,7 +425,7 @@
             this.spcLogs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.spcLogs.Location = new System.Drawing.Point(12, 161);
+            this.spcLogs.Location = new System.Drawing.Point(12, 195);
             this.spcLogs.Name = "spcLogs";
             this.spcLogs.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -294,8 +436,8 @@
             // spcLogs.Panel2
             // 
             this.spcLogs.Panel2.Controls.Add(this.txtError);
-            this.spcLogs.Size = new System.Drawing.Size(728, 361);
-            this.spcLogs.SplitterDistance = 160;
+            this.spcLogs.Size = new System.Drawing.Size(728, 327);
+            this.spcLogs.SplitterDistance = 144;
             this.spcLogs.TabIndex = 12;
             // 
             // txtLog
@@ -306,7 +448,7 @@
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(728, 160);
+            this.txtLog.Size = new System.Drawing.Size(728, 144);
             this.txtLog.TabIndex = 0;
             // 
             // txtError
@@ -317,53 +459,23 @@
             this.txtError.Name = "txtError";
             this.txtError.ReadOnly = true;
             this.txtError.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtError.Size = new System.Drawing.Size(728, 197);
+            this.txtError.Size = new System.Drawing.Size(728, 179);
             this.txtError.TabIndex = 0;
             // 
             // pbrProgress
             // 
             this.pbrProgress.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pbrProgress.Location = new System.Drawing.Point(22, 132);
+            this.pbrProgress.Location = new System.Drawing.Point(22, 166);
             this.pbrProgress.Name = "pbrProgress";
             this.pbrProgress.Size = new System.Drawing.Size(546, 23);
             this.pbrProgress.TabIndex = 13;
             // 
-            // btnUnpackExplore
+            // openFileDialog1
             // 
-            this.btnUnpackExplore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnUnpackExplore.Location = new System.Drawing.Point(558, 17);
-            this.btnUnpackExplore.Name = "btnUnpackExplore";
-            this.btnUnpackExplore.Size = new System.Drawing.Size(75, 23);
-            this.btnUnpackExplore.TabIndex = 4;
-            this.btnUnpackExplore.Text = "Explore";
-            this.toolTip1.SetToolTip(this.btnUnpackExplore, "Open the output directory in Explorer");
-            this.btnUnpackExplore.UseVisualStyleBackColor = true;
-            this.btnUnpackExplore.Click += new System.EventHandler(this.btnUnpackExplore_Click);
-            // 
-            // btnRepackExplore
-            // 
-            this.btnRepackExplore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRepackExplore.Location = new System.Drawing.Point(558, 17);
-            this.btnRepackExplore.Name = "btnRepackExplore";
-            this.btnRepackExplore.Size = new System.Drawing.Size(75, 23);
-            this.btnRepackExplore.TabIndex = 8;
-            this.btnRepackExplore.Text = "Explore";
-            this.toolTip1.SetToolTip(this.btnRepackExplore, "Open the override directory in Explorer");
-            this.btnRepackExplore.UseVisualStyleBackColor = true;
-            this.btnRepackExplore.Click += new System.EventHandler(this.btnRepackExplore_Click);
-            // 
-            // btnGameExplore
-            // 
-            this.btnGameExplore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnGameExplore.Location = new System.Drawing.Point(655, 25);
-            this.btnGameExplore.Name = "btnGameExplore";
-            this.btnGameExplore.Size = new System.Drawing.Size(75, 23);
-            this.btnGameExplore.TabIndex = 14;
-            this.btnGameExplore.Text = "Explore";
-            this.toolTip1.SetToolTip(this.btnGameExplore, "Open the game directory in Explorer");
-            this.btnGameExplore.UseVisualStyleBackColor = true;
-            this.btnGameExplore.Click += new System.EventHandler(this.btnGameExplore_Click);
+            this.openFileDialog1.FileName = "openFileDialog1";
+            this.openFileDialog1.Filter = "Images|*.dds;*.tga;*.png";
+            this.openFileDialog1.Title = "Select an image to convert";
             // 
             // FormMain
             // 
@@ -392,6 +504,8 @@
             this.tpgUnpack.PerformLayout();
             this.tpgRepack.ResumeLayout(false);
             this.tpgRepack.PerformLayout();
+            this.tpgConvert.ResumeLayout(false);
+            this.tpgConvert.PerformLayout();
             this.spcLogs.Panel1.ResumeLayout(false);
             this.spcLogs.Panel1.PerformLayout();
             this.spcLogs.Panel2.ResumeLayout(false);
@@ -433,6 +547,15 @@
         private System.Windows.Forms.Button btnUnpackExplore;
         private System.Windows.Forms.Button btnRepackExplore;
         private System.Windows.Forms.Button btnGameExplore;
+        private System.Windows.Forms.TabPage tpgConvert;
+        private System.Windows.Forms.Button btnConvert;
+        private System.Windows.Forms.ComboBox cmbConvertFormat;
+        private System.Windows.Forms.Label lblConvertFormat;
+        private System.Windows.Forms.Button btnConvertBrowse;
+        private System.Windows.Forms.TextBox txtConvertFile;
+        private System.Windows.Forms.Label lblConvertFile;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.Button btnConvertExplore;
     }
 }
 

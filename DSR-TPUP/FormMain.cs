@@ -1,12 +1,14 @@
 ﻿using Octokit;
 using Semver;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Media;
 using System.Net.Http;
 using System.Threading;
 using System.Windows.Forms;
+using TeximpNet.DDS;
 
 namespace DSR_TPUP
 {
@@ -36,9 +38,34 @@ namespace DSR_TPUP
             txtGameDir.Text = settings.GameDir;
             txtUnpackDir.Text = settings.UnpackDir;
             txtRepackDir.Text = settings.RepackDir;
+            txtConvertFile.Text = settings.ConvertFile;
             tclMain.SelectedIndex = settings.TabSelected;
             spcLogs.SplitterDistance = settings.SplitterDistance;
             enableControls(true);
+
+            // Force common formats to the top
+            List<DXGIFormat> outOfOrder = new List<DXGIFormat> {
+                DXGIFormat.BC1_UNorm,
+                DXGIFormat.BC2_UNorm,
+                DXGIFormat.BC3_UNorm,
+                DXGIFormat.BC5_UNorm,
+                DXGIFormat.BC7_UNorm,
+            };
+
+            foreach (DXGIFormat format in outOfOrder)
+                cmbConvertFormat.Items.Add(new ConvertFormatItem(format));
+
+            cmbConvertFormat.Items.Add("--------------------------------------------------");
+
+            List<DXGIFormat> inOrder = new List<DXGIFormat>();
+            foreach (DXGIFormat format in Enum.GetValues(typeof(DXGIFormat)))
+                if (!outOfOrder.Contains(format) && format != DXGIFormat.Unknown)
+                    inOrder.Add(format);
+
+            inOrder.Sort((f1, f2) => f1.ToString().CompareTo(f2.ToString()));
+            foreach (DXGIFormat format in inOrder)
+                cmbConvertFormat.Items.Add(new ConvertFormatItem(format));
+            cmbConvertFormat.SelectedIndex = 0;
 
             GitHubClient gitHubClient = new GitHubClient(new ProductHeaderValue("DSR-TPUP"));
             try
@@ -93,6 +120,7 @@ namespace DSR_TPUP
                 settings.GameDir = txtGameDir.Text;
                 settings.UnpackDir = txtUnpackDir.Text;
                 settings.RepackDir = txtRepackDir.Text;
+                settings.ConvertFile = txtConvertFile.Text;
                 settings.TabSelected = tclMain.SelectedIndex;
                 settings.SplitterDistance = spcLogs.SplitterDistance;
             }
@@ -101,7 +129,6 @@ namespace DSR_TPUP
         private void btnGameBrowse_Click(object sender, EventArgs e)
         {
             folderBrowserDialog1.Description = "Select your game install directory";
-            folderBrowserDialog1.RootFolder = Environment.SpecialFolder.MyComputer;
             try
             {
                 folderBrowserDialog1.SelectedPath = Path.GetFullPath(txtGameDir.Text);
@@ -124,10 +151,10 @@ namespace DSR_TPUP
                 SystemSounds.Hand.Play();
         }
 
+        #region Unpack
         private void btnUnpackBrowse_Click(object sender, EventArgs e)
         {
             folderBrowserDialog1.Description = "Select the directory to unpack textures into";
-            folderBrowserDialog1.RootFolder = Environment.SpecialFolder.MyComputer;
             try
             {
                 folderBrowserDialog1.SelectedPath = Path.GetFullPath(txtUnpackDir.Text);
@@ -225,11 +252,12 @@ namespace DSR_TPUP
                 }
             }
         }
+        #endregion
 
+        #region Repack
         private void btnRepackBrowse_Click(object sender, EventArgs e)
         {
             folderBrowserDialog1.Description = "Select the directory to load texture overrides from";
-            folderBrowserDialog1.RootFolder = Environment.SpecialFolder.MyComputer;
             try
             {
                 folderBrowserDialog1.SelectedPath = Path.GetFullPath(txtRepackDir.Text);
@@ -295,6 +323,81 @@ namespace DSR_TPUP
                 }
             }
         }
+        #endregion
+
+        #region Convert
+        private void btnConvertBrowse_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                openFileDialog1.InitialDirectory = Path.GetDirectoryName(Path.GetFullPath(txtConvertFile.Text));
+            }
+            // Oh well
+            catch (ArgumentException) { }
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                txtConvertFile.Text = openFileDialog1.FileName;
+        }
+
+        private void btnConvertExplore_Click(object sender, EventArgs e)
+        {
+            if (File.Exists(txtConvertFile.Text))
+                Process.Start(Path.GetDirectoryName(Path.GetFullPath(txtConvertFile.Text)));
+            else
+                SystemSounds.Hand.Play();
+        }
+
+        private void btnConvert_Click(object sender, EventArgs e)
+        {
+            string filepath = txtConvertFile.Text;
+            if (File.Exists(filepath))
+            {
+                if (File.Exists("bin\\texconv.exe"))
+                {
+                    ConvertFormatItem formatItem = cmbConvertFormat.SelectedItem as ConvertFormatItem;
+                    if (formatItem == null)
+                        return;
+                    DXGIFormat format = formatItem.Format;
+
+                    filepath = Path.GetFullPath(filepath);
+                    string directory = Path.GetDirectoryName(filepath);
+
+                    bool backedUp = false;
+                    if (Path.GetExtension(filepath) == ".dds" && !File.Exists(filepath + ".bak"))
+                    {
+                        backedUp = true;
+                        File.Copy(filepath, filepath + ".bak");
+                    }
+
+                    string args = string.Format("-f {0} -o \"{1}\" \"{2}\" -y",
+                        TPUP.PrintDXGIFormat(format), directory, filepath);
+                    ProcessStartInfo startInfo = new ProcessStartInfo("bin\\texconv.exe", args)
+                    {
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true
+                    };
+                    Process texconv = Process.Start(startInfo);
+                    texconv.WaitForExit();
+
+                    if (texconv.ExitCode == 0)
+                    {
+                        appendLog("Conversion successful!");
+                        SystemSounds.Asterisk.Play();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Conversion failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        if (backedUp)
+                            File.Move(filepath + ".bak", filepath);
+                    }
+                }
+                else
+                    MessageBox.Show("texconv.exe not found in bin folder", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+                MessageBox.Show("That file does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        #endregion
 
         private void btnAbort_Click(object sender, EventArgs e)
         {
@@ -394,6 +497,21 @@ namespace DSR_TPUP
                 txtError.AppendText("\r\n" + line.Item2);
             else
                 txtError.AppendText(line.Item2);
+        }
+
+        private class ConvertFormatItem
+        {
+            public DXGIFormat Format;
+
+            public ConvertFormatItem(DXGIFormat format)
+            {
+                Format = format;
+            }
+
+            public override string ToString()
+            {
+                return TPUP.PrintDXGIFormat(Format);
+            }
         }
     }
 }

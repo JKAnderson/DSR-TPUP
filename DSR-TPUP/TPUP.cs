@@ -160,7 +160,7 @@ namespace DSR_TPUP
                                 {
                                     (DXGIFormat, int, int) dds = reports[filepath];
                                     sb.AppendFormat("File:   {0}\r\nFormat: {1}\r\nSize:   {2}x{3}\r\n\r\n",
-                                        Path.GetFileName(filepath), printDXGIFormat(dds.Item1), dds.Item2, dds.Item3);
+                                        Path.GetFileName(filepath), PrintDXGIFormat(dds.Item1), dds.Item2, dds.Item3);
                                 }
                                 else
                                     sb.AppendFormat("File:   {0}\r\nFormat: Unknown\r\nSize:   Unknown\r\n\r\n");
@@ -432,7 +432,7 @@ namespace DSR_TPUP
                         if (originalFormat != DXGIFormat.Unknown && newFormat != DXGIFormat.Unknown && originalFormat != newFormat)
                         {
                             appendError(false, "Warning: {0}\r\n\u2514\u2500 Expected format {1}, got format {2}. Converting...",
-                                    subPath, printDXGIFormat(originalFormat), printDXGIFormat(newFormat));
+                                    subPath, PrintDXGIFormat(originalFormat), PrintDXGIFormat(newFormat));
 
                             byte[] newBytes = convertFile(ddsPath, originalFormat);
                             if (newBytes != null)
@@ -484,11 +484,9 @@ namespace DSR_TPUP
             string filename = Path.GetFileName(filepath);
             string noExtension = Path.GetFileNameWithoutExtension(filename);
             string outPath = directory + "\\texconv_" + noExtension + ".dds";
-            if (File.Exists(outPath))
-                File.Delete(outPath);
 
-            string args = string.Format("-px texconv_ -f {0} -o \"{1}\" \"{1}\\{2}\"",
-                printDXGIFormat(format), directory, filename);
+            string args = string.Format("-px texconv_ -f {0} -o \"{1}\" \"{1}\\{2}\" -y",
+                PrintDXGIFormat(format), directory, filename);
             ProcessStartInfo startInfo = new ProcessStartInfo("bin\\texconv.exe", args)
             {
                 CreateNoWindow = true,
@@ -499,15 +497,13 @@ namespace DSR_TPUP
             texconv.WaitForExit();
 
             byte[] result = null;
-            if (!File.Exists(outPath))
-            {
-                appendError(true, "Error: {0}\\{1}\r\n\u2514\u2500 Conversion failed.", directory, filename);
-            }
-            else
+            if (texconv.ExitCode == 0)
             {
                 result = File.ReadAllBytes(outPath);
                 File.Delete(outPath);
             }
+            else
+                appendError(true, "Error: {0}\\{1}\r\n\u2514\u2500 Conversion failed.", directory, filename);
             return result;
         }
 
@@ -539,7 +535,7 @@ namespace DSR_TPUP
             [DXGIFormat.Opaque_420] = "420_OPAQUE",
         };
 
-        private static string printDXGIFormat(DXGIFormat format)
+        public static string PrintDXGIFormat(DXGIFormat format)
         {
             if (dxgiFormatOverride.ContainsKey(format))
                 return dxgiFormatOverride[format];
