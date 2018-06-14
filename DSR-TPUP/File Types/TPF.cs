@@ -1,55 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace DSR_TPUP
 {
     class TPF
     {
-        private static Encoding shiftJIS = Encoding.GetEncoding("shift_jis");
-
         public List<TPFEntry> Files;
 
-        public TPF(byte[] bytes)
+        public static TPF Unpack(byte[] bytes)
         {
-            string magic = bytes.ReadString(0x0, 4);
-            if (magic != "TPF")
-                throw new FormatException("Invalid TPF magic characters: " + magic);
-
-            bool bigEndian = bytes.ReadUInt32(0x8) >= 0x1000000;
-            uint flags = bytes.ReadUInt32(0xC, bigEndian);
-            switch (flags)
-            {
-                case 0x20300:
-                    dsUnpack(bytes, bigEndian);
-                    break;
-
-                default:
-                    throw new NotImplementedException("Unsupported TPF flags: " + flags);
-            }
+            return new TPF(bytes);
         }
 
-        private void dsUnpack(byte[] bytes, bool bigEndian)
+        private TPF(byte[] bytes)
         {
-            uint fileCount = bytes.ReadUInt32(0x8, bigEndian);
+            BinaryReaderEx br = new BinaryReaderEx(bytes, false);
+            br.AssertASCII("TPF\0", 4);
+            int totalFileSize = br.ReadInt32();
+            int fileCount = br.ReadInt32();
+            // Only DS1 support
+            br.AssertInt32(0x20300);
+
             Files = new List<TPFEntry>();
-            for (uint i = 0; i < fileCount; i++)
+            for (int i = 0; i < fileCount; i++)
             {
-                uint fileOffset = bytes.ReadUInt32(0x10 + i * 0x14, bigEndian);
-                uint size = bytes.ReadUInt32(0x14 + i * 0x14, bigEndian);
-                uint flags1 = bytes.ReadUInt32(0x18 + i * 0x14, bigEndian);
-                uint nameOffset = bytes.ReadUInt32(0x1C + i * 0x14, bigEndian);
-                uint flags2 = bytes.ReadUInt32(0x20 + i * 0x14, bigEndian);
-                string filename = bytes.ReadString(nameOffset, 0, shiftJIS);
-                byte[] file = new byte[size];
-                Array.Copy(bytes, fileOffset, file, 0, size);
+                int fileOffset = br.ReadInt32();
+                int fileSize = br.ReadInt32();
+                int flags1 = br.ReadInt32();
+                int nameOffset = br.ReadInt32();
+                int flags2 = br.ReadInt32();
+
+                byte[] fileData = br.GetBytes(fileOffset, fileSize);
+                string fileName = br.GetShiftJIS(nameOffset);
 
                 TPFEntry entry = new TPFEntry
                 {
-                    Name = filename,
+                    Name = fileName,
                     Flags1 = flags1,
                     Flags2 = flags2,
-                    Bytes = file
+                    Bytes = fileData,
                 };
                 Files.Add(entry);
             }
@@ -57,68 +45,49 @@ namespace DSR_TPUP
 
         public byte[] Repack()
         {
-            uint totalHeaderSize = 0x10 + (uint)Files.Count * 0x14;
-            uint nameEnd = totalHeaderSize;
-            uint totalFileSize = 0;
-            uint totalFileSizePadded = 0;
+            BinaryWriterEx bw = new BinaryWriterEx(false);
+            bw.WriteASCII("TPF\0");
+            bw.ReserveInt32("DataSize");
+            bw.WriteInt32(Files.Count);
+            bw.WriteInt32(0x20300);
 
-            foreach (TPFEntry entry in Files)
-            {
-                byte[] encodedName = shiftJIS.GetBytes(entry.Name);
-                nameEnd += (uint)encodedName.Length + 1;
-
-                uint fileSize = (uint)entry.Bytes.Length;
-                totalFileSize += fileSize;
-
-                uint fileSizePadded = fileSize;
-                if (fileSizePadded % 0x10 > 0)
-                    fileSizePadded += 0x10 - fileSizePadded % 0x10;
-                totalFileSizePadded += fileSizePadded;
-            }
-
-            if (nameEnd % 0x10 > 0)
-                nameEnd += 0x10 - nameEnd % 0x10;
-
-            byte[] result = new byte[nameEnd + totalFileSizePadded];
-            result.WriteString(0x0, "TPF");
-            result.WriteUInt32(0x4, totalFileSize);
-            result.WriteUInt32(0x8, (uint)Files.Count);
-            result.WriteUInt32(0xC, 0x20300);
-
-            uint currentNameOffset = totalHeaderSize;
-            uint currentFileOffset = nameEnd;
             for (int i = 0; i < Files.Count; i++)
             {
                 TPFEntry entry = Files[i];
-                uint headerOffset = (uint)i * 0x14;
-                byte[] encodedName = shiftJIS.GetBytes(entry.Name);
-                uint fileSize = (uint)entry.Bytes.Length;
-                uint fileSizePadded = fileSize;
-                if (fileSizePadded % 0x10 > 0)
-                    fileSizePadded += 0x10 - fileSizePadded % 0x10;
-
-                result.WriteUInt32(headerOffset + 0x10, currentFileOffset);
-                result.WriteUInt32(headerOffset + 0x14, fileSize);
-                result.WriteUInt32(headerOffset + 0x18, entry.Flags1);
-                result.WriteUInt32(headerOffset + 0x1C, currentNameOffset);
-                result.WriteUInt32(headerOffset + 0x20, entry.Flags2);
-
-                Array.Copy(entry.Bytes, 0, result, currentFileOffset, fileSize);
-                currentFileOffset += fileSizePadded;
-
-                Array.Copy(encodedName, 0, result, currentNameOffset, encodedName.Length);
-                currentNameOffset += (uint)encodedName.Length + 1;
+                bw.ReserveInt32($"FileData{i}");
+                bw.WriteInt32(entry.Bytes.Length);
+                bw.WriteInt32(entry.Flags1);
+                bw.ReserveInt32($"FileName{i}");
+                bw.WriteInt32(entry.Flags2);
             }
 
-            return result;
+            for (int i = 0; i < Files.Count; i++)
+            {
+                TPFEntry entry = Files[i];
+                bw.FillInt32($"FileName{i}", bw.Position);
+                bw.WriteShiftJIS(entry.Name, true);
+            }
+            bw.Pad(0x10);
+
+            int dataStart = bw.Position;
+            for (int i = 0; i < Files.Count; i++)
+            {
+                TPFEntry entry = Files[i];
+                bw.FillInt32($"FileData{i}", bw.Position);
+                bw.WriteBytes(entry.Bytes);
+                bw.Pad(0x10);
+            }
+            bw.FillInt32("DataSize", bw.Position - dataStart);
+
+            return bw.Finish();
         }
     }
 
     public class TPFEntry
     {
         public string Name;
-        public uint Flags1;
-        public uint Flags2;
+        public int Flags1;
+        public int Flags2;
         public byte[] Bytes;
     }
 }

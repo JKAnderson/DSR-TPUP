@@ -213,7 +213,7 @@ namespace DSR_TPUP
                     if (extension == ".dcx")
                         decompressedExtension = Path.GetExtension(absolute.Substring(0, absolute.Length - 4));
 
-                    DCX dcx = null;
+                    bool dcx = false;
                     if (repack)
                         appendLog("Checking: " + relative);
                     else
@@ -222,27 +222,26 @@ namespace DSR_TPUP
                     byte[] bytes = File.ReadAllBytes(absolute);
                     if (extension == ".dcx")
                     {
-                        dcx = new DCX(bytes);
-                        bytes = dcx.Decompressed;
+                        dcx = true;
+                        bytes = DCX.Decompress(bytes);
                     }
 
                     string subpath = relative.Substring(0, relative.Length - extension.Length);
-                    if (dcx != null)
+                    if (dcx)
                         subpath = subpath.Substring(0, subpath.Length - decompressedExtension.Length);
 
                     bool edited = false;
                     switch (decompressedExtension)
                     {
                         case ".tpf":
-                            TPF tpf = new TPF(bytes);
+                            TPF tpf = TPF.Unpack(bytes);
                             if (processTPF(tpf, looseDir, subpath, repack))
                             {
                                 edited = true;
                                 byte[] tpfBytes = tpf.Repack();
-                                if (dcx != null)
+                                if (dcx)
                                 {
-                                    dcx.Decompressed = tpfBytes;
-                                    tpfBytes = dcx.Compress();
+                                    tpfBytes = DCX.Compress(tpfBytes);
                                 }
                                 writeRepack(absolute, tpfBytes);
                                 lock (countLock)
@@ -263,10 +262,9 @@ namespace DSR_TPUP
                                 {
                                     edited = true;
                                     (byte[], byte[]) repacked = bhd.Repack(bdt);
-                                    if (dcx != null)
+                                    if (dcx)
                                     {
-                                        dcx.Decompressed = repacked.Item1;
-                                        repacked.Item1 = dcx.Compress();
+                                        repacked.Item1 = DCX.Compress(repacked.Item1);
                                     }
                                     writeRepack(absolute, repacked.Item1);
                                     writeRepack(bdtPath, repacked.Item2);
@@ -292,7 +290,7 @@ namespace DSR_TPUP
                                 string entryExtension = Path.GetExtension(entry.Filename);
                                 if (entryExtension == ".tpf")
                                 {
-                                    TPF bndTPF = new TPF(entry.Bytes);
+                                    TPF bndTPF = TPF.Unpack(entry.Bytes);
                                     if (processTPF(bndTPF, looseDir, subpath, repack))
                                     {
                                         entry.Bytes = bndTPF.Repack();
@@ -304,7 +302,7 @@ namespace DSR_TPUP
                                     BHD bndBHD = new BHD(entry.Bytes);
                                     string bndDir = Path.GetDirectoryName(absolute);
                                     string bndName = Path.GetFileNameWithoutExtension(absolute);
-                                    if (dcx != null)
+                                    if (dcx)
                                         bndName = Path.GetFileNameWithoutExtension(bndName);
                                     string bndBDTPath = bndDir + "\\" + bndName + ".chrtpfbdt";
                                     if (File.Exists(bndBDTPath))
@@ -327,10 +325,9 @@ namespace DSR_TPUP
                             if (edited && !stop)
                             {
                                 byte[] bndBytes = bnd.Repack();
-                                if (dcx != null)
+                                if (dcx)
                                 {
-                                    dcx.Decompressed = bndBytes;
-                                    bndBytes = dcx.Compress();
+                                    bndBytes = DCX.Compress(bndBytes);
                                 }
                                 writeRepack(absolute, bndBytes);
                                 lock (countLock)
@@ -339,7 +336,7 @@ namespace DSR_TPUP
                             break;
                     }
 
-                    if (repack && !edited)
+                    if (repack && !edited && !stop)
                         appendError(false, "Warning: {0}\r\n\u2514\u2500 No overrides found.", relative);
 
                     lock (progressLock)
@@ -356,26 +353,25 @@ namespace DSR_TPUP
                 if (stop)
                     return false;
 
-                DCX bdtDCX = null;
+                bool bdtDCX = false;
                 byte[] bdtEntryBytes = bdtEntry.Bytes;
                 string bdtEntryExtension = Path.GetExtension(bdtEntry.Filename);
                 if (bdtEntryExtension == ".dcx")
                 {
-                    bdtDCX = new DCX(bdtEntryBytes);
-                    bdtEntryBytes = bdtDCX.Decompressed;
+                    bdtDCX = true;
+                    bdtEntryBytes = DCX.Decompress(bdtEntryBytes);
                     bdtEntryExtension = Path.GetExtension(bdtEntry.Filename.Substring(0, bdtEntry.Filename.Length - 4));
                 }
 
                 if (bdtEntryExtension == ".tpf")
                 {
-                    TPF tpf = new TPF(bdtEntryBytes);
+                    TPF tpf = TPF.Unpack(bdtEntryBytes);
                     if (processTPF(tpf, baseDir, subpath, repack))
                     {
                         bdtEntry.Bytes = tpf.Repack();
-                        if (bdtDCX != null)
+                        if (bdtDCX)
                         {
-                            bdtDCX.Decompressed = bdtEntry.Bytes;
-                            bdtEntry.Bytes = bdtDCX.Compress();
+                            bdtEntry.Bytes = DCX.Compress(bdtEntry.Bytes);
                         }
                         edited = true;
                     }

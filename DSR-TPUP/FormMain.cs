@@ -241,6 +241,7 @@ namespace DSR_TPUP
                     {
                         enableControls(false);
                         txtLog.Clear();
+                        txtError.Clear();
                         logLength = 0;
                         errorLength = 0;
                         pbrProgress.Value = 0;
@@ -313,6 +314,7 @@ namespace DSR_TPUP
                 {
                     enableControls(false);
                     txtLog.Clear();
+                    txtError.Clear();
                     logLength = 0;
                     errorLength = 0;
                     pbrProgress.Value = 0;
@@ -415,6 +417,7 @@ namespace DSR_TPUP
             else
             {
                 txtLog.Clear();
+                txtError.Clear();
                 int found = 0;
                 foreach (string filepath in Directory.GetFiles(txtGameDir.Text, "*.tpupbak", SearchOption.AllDirectories))
                 {
