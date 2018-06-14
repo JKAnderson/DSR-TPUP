@@ -143,7 +143,7 @@ namespace DSR_TPUP
 
             foreach (Thread thread in threads)
                 thread.Join();
-
+            
             if (!stop)
             {
                 if (!repack)
@@ -250,18 +250,17 @@ namespace DSR_TPUP
                             break;
 
                         case ".tpfbhd":
-                            BHD bhd = new BHD(bytes);
                             string dir = Path.GetDirectoryName(absolute);
                             string name = Path.GetFileNameWithoutExtension(absolute);
                             string bdtPath = dir + "\\" + name + ".tpfbdt";
                             if (File.Exists(bdtPath))
                             {
                                 byte[] bdtBytes = File.ReadAllBytes(bdtPath);
-                                BDT bdt = new BDT(bdtBytes, bhd);
-                                if (processBHD(bhd, bdt, looseDir, subpath, repack))
+                                BDT bdt = BDT.Unpack(bytes, bdtBytes);
+                                if (processBDT(bdt, looseDir, subpath, repack))
                                 {
                                     edited = true;
-                                    (byte[], byte[]) repacked = bhd.Repack(bdt);
+                                    (byte[], byte[]) repacked = bdt.Repack();
                                     if (dcx)
                                     {
                                         repacked.Item1 = DCX.Compress(repacked.Item1);
@@ -281,7 +280,7 @@ namespace DSR_TPUP
                         case ".fgbnd":
                         case ".objbnd":
                         case ".partsbnd":
-                            BND bnd = new BND(bytes);
+                            BND bnd = BND.Unpack(bytes);
                             foreach (BNDEntry entry in bnd.Files)
                             {
                                 if (stop)
@@ -299,7 +298,6 @@ namespace DSR_TPUP
                                 }
                                 else if (entryExtension == ".chrtpfbhd")
                                 {
-                                    BHD bndBHD = new BHD(entry.Bytes);
                                     string bndDir = Path.GetDirectoryName(absolute);
                                     string bndName = Path.GetFileNameWithoutExtension(absolute);
                                     if (dcx)
@@ -308,10 +306,10 @@ namespace DSR_TPUP
                                     if (File.Exists(bndBDTPath))
                                     {
                                         byte[] bdtBytes = File.ReadAllBytes(bndBDTPath);
-                                        BDT bndBDT = new BDT(bdtBytes, bndBHD);
-                                        if (processBHD(bndBHD, bndBDT, looseDir, subpath, repack))
+                                        BDT bndBDT = BDT.Unpack(entry.Bytes, bdtBytes);
+                                        if (processBDT(bndBDT, looseDir, subpath, repack))
                                         {
-                                            (byte[], byte[]) repacked = bndBHD.Repack(bndBDT);
+                                            (byte[], byte[]) repacked = bndBDT.Repack();
                                             entry.Bytes = repacked.Item1;
                                             writeRepack(bndBDTPath, repacked.Item2);
                                             edited = true;
@@ -345,7 +343,7 @@ namespace DSR_TPUP
             }
         }
 
-        private bool processBHD(BHD bhd, BDT bdt, string baseDir, string subpath, bool repack)
+        private bool processBDT(BDT bdt, string baseDir, string subpath, bool repack)
         {
             bool edited = false;
             foreach (BDTEntry bdtEntry in bdt.Files)

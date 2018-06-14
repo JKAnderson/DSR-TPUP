@@ -66,7 +66,6 @@
     <Compile Include="BinaryReaderEx.cs" />
     <Compile Include="BinaryWriterEx.cs" />
     <Compile Include="File Types\BDT.cs" />
-    <Compile Include="File Types\BHD.cs" />
     <Compile Include="File Types\BND.cs" />
     <Compile Include="ByteArrayExtensions.cs" />
     <Compile Include="File Types\DCX.cs" />
