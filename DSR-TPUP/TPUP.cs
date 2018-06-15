@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -30,10 +31,10 @@ namespace DSR_TPUP
         private int progress, progressMax;
         private bool stop;
         private Thread[] threads;
-        private List<string> log;
-        private List<(bool, string)> errors;
         private int fileCount, textureCount;
         private Dictionary<string, (DXGIFormat, int, int)> reports;
+
+        public ConcurrentQueue<string> Log, Error;
 
         public TPUP(string setGameDir, string setLooseDir, bool setRepack, int threadCount)
         {
@@ -41,8 +42,8 @@ namespace DSR_TPUP
             gameDir = Path.GetFullPath(setGameDir);
             looseDir = Path.GetFullPath(setLooseDir);
             repack = setRepack;
-            log = new List<string>();
-            errors = new List<(bool, string)>();
+            Log = new ConcurrentQueue<string>();
+            Error = new ConcurrentQueue<string>();
             threads = new Thread[threadCount];
             writeLock = new object();
             fileCount = 0;
@@ -60,30 +61,6 @@ namespace DSR_TPUP
             stop = true;
         }
 
-        public int GetLogLength()
-        {
-            lock (log)
-                return log.Count;
-        }
-
-        public string GetLogLine(int i)
-        {
-            lock (log)
-                return log[i];
-        }
-
-        public int GetErrorLength()
-        {
-            lock (errors)
-                return errors.Count;
-        }
-
-        public (bool, string) GetErrorLine(int i)
-        {
-            lock (errors)
-                return errors[i];
-        }
-
         public int GetProgressMax()
         {
             return progressMax;
@@ -97,7 +74,7 @@ namespace DSR_TPUP
 
         public void Start()
         {
-            List<string> filepaths = new List<string>();
+            ConcurrentQueue<string> filepaths = new ConcurrentQueue<string>();
             foreach (string filepath in Directory.EnumerateFiles(gameDir, "*", SearchOption.AllDirectories))
             {
                 string decompressedExtension = Path.GetExtension(filepath);
@@ -121,16 +98,15 @@ namespace DSR_TPUP
                 }
 
                 if (valid)
-                    filepaths.Add(filepath);
+                    filepaths.Enqueue(filepath);
             }
-            filepaths.Reverse();
             progressMax = filepaths.Count;
 
             if (repack)
-                appendLog("Checking {0} files for repacking...", filepaths.Count);
+                appendLog("Checking {0:n0} files for repacking...", filepaths.Count);
             else
             {
-                appendLog("Unpacking {0} files...", filepaths.Count);
+                appendLog("Unpacking {0:n0} files...", filepaths.Count);
                 fileCount = filepaths.Count;
             }
 
@@ -163,7 +139,8 @@ namespace DSR_TPUP
                                         Path.GetFileName(filepath), PrintDXGIFormat(dds.Item1), dds.Item2, dds.Item3);
                                 }
                                 else
-                                    sb.AppendFormat("File:   {0}\r\nFormat: Unknown\r\nSize:   Unknown\r\n\r\n");
+                                    sb.AppendFormat("File:   {0}\r\nFormat: Unknown\r\nSize:   Unknown\r\n\r\n",
+                                        Path.GetFileName(filepath));
                             }
                             File.WriteAllText(dirPath + "\\_report.txt", sb.ToString().TrimEnd());
                         }
@@ -181,30 +158,20 @@ namespace DSR_TPUP
             else
             {
                 if (repack)
-                    appendLog("Repacked {0} textures in {1} files!", textureCount, fileCount);
+                    appendLog("Repacked {0:n0} textures in {1:n0} files!", textureCount, fileCount);
                 else
-                    appendLog("Unpacked {0} textures from {1} files!", textureCount, fileCount);
+                    appendLog("Unpacked {0:n0} textures from {1:n0} files!", textureCount, fileCount);
             }
         }
 
-        private void iterateFiles(List<string> filepaths)
+        private void iterateFiles(ConcurrentQueue<string> filepaths)
         {
             bool empty = false;
             while (!empty && !stop)
             {
-                string filepath = null;
-                lock (filepaths)
-                {
-                    if (filepaths.Count == 0)
-                        empty = true;
-                    else
-                    {
-                        filepath = filepaths.Last();
-                        filepaths.RemoveAt(filepaths.Count - 1);
-                    }
-                }
-
-                if (filepath != null)
+                empty = !filepaths.TryDequeue(out string filepath);
+                
+                if (!empty)
                 {
                     string absolute = Path.GetFullPath(filepath);
                     string relative = absolute.Substring(gameDir.Length + 1);
@@ -335,7 +302,7 @@ namespace DSR_TPUP
                     }
 
                     if (repack && !edited && !stop)
-                        appendError(false, "Warning: {0}\r\n\u2514\u2500 No overrides found.", relative);
+                        appendError("Warning: {0}\r\n\u2514\u2500 No overrides found.", relative);
 
                     lock (progressLock)
                         progress++;
@@ -418,16 +385,16 @@ namespace DSR_TPUP
                         DXGIFormat newFormat = DDSFile.Read(new MemoryStream(ddsBytes)).Format;
 
                         if (originalFormat == DXGIFormat.Unknown)
-                            appendError(true, "Error: {0}\r\n\u2514\u2500 Could not determine format of game file.", subPath);
+                            appendError("Error: {0}\r\n\u2514\u2500 Could not determine format of game file.", subPath);
 
                         if (newFormat == DXGIFormat.Unknown)
-                            appendError(true, "Error: {0}\r\n\u2514\u2500 Could not determine format of override file.", subPath);
+                            appendError("Error: {0}\r\n\u2514\u2500 Could not determine format of override file.", subPath);
 
                         if (originalFormat != DXGIFormat.Unknown && newFormat != DXGIFormat.Unknown && originalFormat != newFormat)
                         {
-                            appendError(false, "Warning: {0}\r\n\u2514\u2500 Expected format {1}, got format {2}. Converting...",
+                            appendError("Warning: {0}\r\n\u2514\u2500 Expected format {1}, got format {2}. Converting...",
                                     subPath, PrintDXGIFormat(originalFormat), PrintDXGIFormat(newFormat));
-
+                            
                             byte[] newBytes = convertFile(ddsPath, originalFormat);
                             if (newBytes != null)
                                 ddsBytes = newBytes;
@@ -443,13 +410,15 @@ namespace DSR_TPUP
                 {
                     MemoryStream stream = new MemoryStream(tpfEntry.Bytes);
                     DDSContainer dds = DDSFile.Read(stream);
-                    if (dds.Format == DXGIFormat.Unknown || dds.MipChains.Count < 1 || dds.MipChains[0].Count < 1)
-                        appendError(true, "Error: {0}\r\n\u2514\u2500 Could not determine format of game file.", subPath);
-                    else
-                        reports[ddsPath] = (dds.Format, dds.MipChains[0][0].Width, dds.MipChains[0][0].Height);
-
+                    
                     lock (writeLock)
                     {
+                        // Important to do this in the lock, otherwise some reports are lost
+                        if (dds.Format == DXGIFormat.Unknown || dds.MipChains.Count < 1 || dds.MipChains[0].Count < 1)
+                            appendError("Error: {0}\r\n\u2514\u2500 Could not determine format of game file.", subPath);
+                        else
+                            reports[ddsPath] = (dds.Format, dds.MipChains[0][0].Width, dds.MipChains[0][0].Height);
+
                         if (!File.Exists(ddsPath))
                         {
                             File.WriteAllBytes(ddsPath, tpfEntry.Bytes);
@@ -457,7 +426,7 @@ namespace DSR_TPUP
                                 textureCount++;
                         }
                         else
-                            appendError(true, "Error: {0}\r\n\u2514\u2500 Duplicate file found.", subPath);
+                            appendError("Error: {0}\r\n\u2514\u2500 Duplicate file found.", subPath);
                     }
                 }
             }
@@ -469,7 +438,7 @@ namespace DSR_TPUP
         {
             if (!File.Exists("bin\\texconv.exe"))
             {
-                appendError(true, "Error: texconv.exe not found in bin folder");
+                appendError("Error: texconv.exe not found in bin folder");
                 return null;
             }
 
@@ -497,21 +466,20 @@ namespace DSR_TPUP
                 File.Delete(outPath);
             }
             else
-                appendError(true, "Error: {0}\\{1}\r\n\u2514\u2500 Conversion failed.", directory, filename);
+                appendError("Error: {0}\\{1}\r\n\u2514\u2500 Conversion failed.", directory, filename);
             return result;
         }
 
         private void appendLog(string format, params object[] args)
         {
             string line = string.Format(format, args);
-            lock (log)
-                log.Add(line);
+            Log.Enqueue(line);
         }
 
-        private void appendError(bool error, string format, params object[] args)
+        private void appendError(string format, params object[] args)
         {
-            lock (errors)
-                errors.Add((error, string.Format(format, args)));
+            string line = string.Format(format, args);
+            Error.Enqueue(line);
         }
 
         private static void writeRepack(string path, byte[] bytes)

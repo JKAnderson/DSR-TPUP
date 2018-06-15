@@ -19,7 +19,6 @@ namespace DSR_TPUP
 
         private TPUP tpup;
         private Thread tpupThread;
-        private int logLength, errorLength;
         private bool abort = false;
 
         public FormMain()
@@ -211,7 +210,10 @@ namespace DSR_TPUP
                     try
                     {
                         if (Directory.Exists(unpackDir))
+                        {
+                            appendLog("Deleting unpack directory...");
                             Directory.Delete(unpackDir, true);
+                        }
                     }
                     catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
                     {
@@ -242,8 +244,6 @@ namespace DSR_TPUP
                         enableControls(false);
                         txtLog.Clear();
                         txtError.Clear();
-                        logLength = 0;
-                        errorLength = 0;
                         pbrProgress.Value = 0;
                         pbrProgress.Maximum = 0;
                         tpup = new TPUP(txtGameDir.Text, unpackDir, false, Environment.ProcessorCount);
@@ -315,8 +315,6 @@ namespace DSR_TPUP
                     enableControls(false);
                     txtLog.Clear();
                     txtError.Clear();
-                    logLength = 0;
-                    errorLength = 0;
                     pbrProgress.Value = 0;
                     pbrProgress.Maximum = 0;
                     tpup = new TPUP(gameDir, repackDir, true, Environment.ProcessorCount);
@@ -435,34 +433,31 @@ namespace DSR_TPUP
             }
         }
 
+        private void updateLogs()
+        {
+            while (tpup.Log.TryDequeue(out string line))
+                appendLog(line);
+
+            while (tpup.Error.TryDequeue(out string line))
+                appendError(line);
+
+            if (pbrProgress.Maximum == 0)
+                pbrProgress.Maximum = tpup.GetProgressMax();
+            else
+                pbrProgress.Value = tpup.GetProgress();
+        }
+
         private void tmrCheckThread_Tick(object sender, EventArgs e)
         {
             if (tpupThread != null)
             {
-                int newLogLength = tpup.GetLogLength();
-                if (newLogLength > logLength)
-                {
-                    for (int i = logLength; i < newLogLength; i++)
-                        appendLog(tpup.GetLogLine(i));
-                    logLength = newLogLength;
-                }
-
-                int newErrorLength = tpup.GetErrorLength();
-                if (newErrorLength > errorLength)
-                {
-                    for (int i = errorLength; i < newErrorLength; i++)
-                        appendError(tpup.GetErrorLine(i));
-                    errorLength = newErrorLength;
-                }
-
-                if (pbrProgress.Maximum == 0)
-                    pbrProgress.Maximum = tpup.GetProgressMax();
-                else
-                    pbrProgress.Value = tpup.GetProgress();
-
+                updateLogs();
 
                 if (!tpupThread.IsAlive)
                 {
+                    // Make sure to clear out any leftover messages
+                    updateLogs();
+
                     tpup = null;
                     tpupThread = null;
                     pbrProgress.Maximum = 0;
@@ -494,12 +489,12 @@ namespace DSR_TPUP
                 txtLog.AppendText(line);
         }
 
-        private void appendError((bool, string) line)
+        private void appendError(string line)
         {
             if (txtError.TextLength > 0)
-                txtError.AppendText("\r\n" + line.Item2);
+                txtError.AppendText("\r\n" + line);
             else
-                txtError.AppendText(line.Item2);
+                txtError.AppendText(line);
         }
 
         private class ConvertFormatItem

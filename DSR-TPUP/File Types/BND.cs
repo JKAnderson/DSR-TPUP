@@ -87,7 +87,7 @@ namespace DSR_TPUP
             {
                 BNDEntry entry = Files[i];
                 bw.FillInt32($"FileName{i}", bw.Position);
-                bw.WriteShiftJIS(entry.Filename);
+                bw.WriteShiftJIS(entry.Filename, true);
             }
             // Do not include padding
             bw.FillInt32($"NameEnd", bw.Position);
