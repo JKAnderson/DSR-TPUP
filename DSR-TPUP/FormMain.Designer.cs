@@ -306,6 +306,7 @@
             this.cmbConvertFormat.Name = "cmbConvertFormat";
             this.cmbConvertFormat.Size = new System.Drawing.Size(546, 21);
             this.cmbConvertFormat.TabIndex = 11;
+            this.cmbConvertFormat.SelectedIndexChanged += new System.EventHandler(this.cmbConvertFormat_SelectedIndexChanged);
             // 
             // lblConvertFormat
             // 

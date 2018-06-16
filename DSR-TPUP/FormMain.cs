@@ -62,7 +62,7 @@ namespace DSR_TPUP
                 if (!outOfOrder.Contains(format) && format != DXGIFormat.Unknown)
                     inOrder.Add(format);
 
-            inOrder.Sort((f1, f2) => f1.ToString().CompareTo(f2.ToString()));
+            inOrder.Sort((f1, f2) => TPUP.PrintDXGIFormat(f1).CompareTo(TPUP.PrintDXGIFormat(f2)));
             foreach (DXGIFormat format in inOrder)
                 cmbConvertFormat.Items.Add(new ConvertFormatItem(format));
             cmbConvertFormat.SelectedIndex = 0;
@@ -394,10 +394,10 @@ namespace DSR_TPUP
                     }
                 }
                 else
-                    MessageBox.Show("texconv.exe not found in bin folder", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("texconv.exe not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
-                MessageBox.Show("That file does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("File to be converted does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         #endregion
 
@@ -472,6 +472,13 @@ namespace DSR_TPUP
                         SystemSounds.Asterisk.Play();
                 }
             }
+        }
+
+        private void cmbConvertFormat_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Please don't select the separator
+            if (cmbConvertFormat.SelectedItem as ConvertFormatItem == null)
+                cmbConvertFormat.SelectedIndex--;
         }
 
         private void enableControls(bool enable)
