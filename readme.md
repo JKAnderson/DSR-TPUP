@@ -1,7 +1,7 @@
 
 # DSR Texture Packer & Unpacker
 [NexusMods Page](https://www.nexusmods.com/darksoulsremastered/mods/9)  
-A tool to extract and override textures in Dark Souls: Remastered. Running as Administrator is recommended.  
+A tool to extract and replace textures in Dark Souls: Remastered. Running as Administrator is recommended.  
 Requires [.NET 4.7.2](https://www.microsoft.com/net/download/thank-you/net472) - Windows 10 users should already have this.  
 and [Visual C++ 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145) - Make sure to get the x64 installer.
 
@@ -45,6 +45,14 @@ To install texture mods, copy the contents of their override folder into your ow
 [TeximpNet](https://bitbucket.org/Starnick/teximpnet) by Nicholas Woodfield
 
 # Changelog
+
+### 1.4
+* UI improvements: progress bar, separate logs and errors, open in explorer buttons
+* Added Convert tab if you want to convert some specific files yourself
+* Added an option to keep auto-converted texture files
+* Aborting an operation is much faster
+* Unpacking textures now generates a report in each folder listing sizes and correct formats
+* Accidentally improved performance by about 40%
 
 ### 1.3
 * Format detection should be more reliable now

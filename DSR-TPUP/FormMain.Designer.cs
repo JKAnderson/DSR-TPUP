@@ -41,6 +41,7 @@
             this.txtUnpackDir = new System.Windows.Forms.TextBox();
             this.lblUnpackDir = new System.Windows.Forms.Label();
             this.tpgRepack = new System.Windows.Forms.TabPage();
+            this.cbxPreserveConverted = new System.Windows.Forms.CheckBox();
             this.btnRepackExplore = new System.Windows.Forms.Button();
             this.btnRepack = new System.Windows.Forms.Button();
             this.btnRepackBrowse = new System.Windows.Forms.Button();
@@ -67,7 +68,6 @@
             this.txtError = new System.Windows.Forms.TextBox();
             this.pbrProgress = new System.Windows.Forms.ProgressBar();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.cbxPreserveConverted = new System.Windows.Forms.CheckBox();
             this.tclMain.SuspendLayout();
             this.tpgUnpack.SuspendLayout();
             this.tpgRepack.SuspendLayout();
@@ -201,6 +201,17 @@
             this.tpgRepack.Text = "Repack";
             this.tpgRepack.UseVisualStyleBackColor = true;
             // 
+            // cbxPreserveConverted
+            // 
+            this.cbxPreserveConverted.AutoSize = true;
+            this.cbxPreserveConverted.Location = new System.Drawing.Point(6, 60);
+            this.cbxPreserveConverted.Name = "cbxPreserveConverted";
+            this.cbxPreserveConverted.Size = new System.Drawing.Size(140, 17);
+            this.cbxPreserveConverted.TabIndex = 9;
+            this.cbxPreserveConverted.Text = "Preserve converted files";
+            this.toolTip1.SetToolTip(this.cbxPreserveConverted, "Automatically converted textures will not be cleaned up afterwards");
+            this.cbxPreserveConverted.UseVisualStyleBackColor = true;
+            // 
             // btnRepackExplore
             // 
             this.btnRepackExplore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -281,7 +292,7 @@
             this.btnConvertExplore.Size = new System.Drawing.Size(75, 23);
             this.btnConvertExplore.TabIndex = 13;
             this.btnConvertExplore.Text = "Explore";
-            this.toolTip1.SetToolTip(this.btnConvertExplore, "Open the override directory in Explorer");
+            this.toolTip1.SetToolTip(this.btnConvertExplore, "Open the directory of the converted file in Explorer");
             this.btnConvertExplore.UseVisualStyleBackColor = true;
             this.btnConvertExplore.Click += new System.EventHandler(this.btnConvertExplore_Click);
             // 
@@ -293,6 +304,7 @@
             this.btnConvert.Size = new System.Drawing.Size(75, 23);
             this.btnConvert.TabIndex = 12;
             this.btnConvert.Text = "Convert";
+            this.toolTip1.SetToolTip(this.btnConvert, "Convert the specified file to the specified format");
             this.btnConvert.UseVisualStyleBackColor = true;
             this.btnConvert.Click += new System.EventHandler(this.btnConvert_Click);
             // 
@@ -325,7 +337,7 @@
             this.btnConvertBrowse.Size = new System.Drawing.Size(75, 23);
             this.btnConvertBrowse.TabIndex = 9;
             this.btnConvertBrowse.Text = "Browse";
-            this.toolTip1.SetToolTip(this.btnConvertBrowse, "Browse for your override directory");
+            this.toolTip1.SetToolTip(this.btnConvertBrowse, "Browse for a file to convert");
             this.btnConvertBrowse.UseVisualStyleBackColor = true;
             this.btnConvertBrowse.Click += new System.EventHandler(this.btnConvertBrowse_Click);
             // 
@@ -479,17 +491,6 @@
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Filter = "Images|*.dds;*.tga;*.png";
             this.openFileDialog1.Title = "Select an image to convert";
-            // 
-            // cbxPreserveConverted
-            // 
-            this.cbxPreserveConverted.AutoSize = true;
-            this.cbxPreserveConverted.Location = new System.Drawing.Point(6, 60);
-            this.cbxPreserveConverted.Name = "cbxPreserveConverted";
-            this.cbxPreserveConverted.Size = new System.Drawing.Size(140, 17);
-            this.cbxPreserveConverted.TabIndex = 9;
-            this.cbxPreserveConverted.Text = "Preserve converted files";
-            this.toolTip1.SetToolTip(this.cbxPreserveConverted, "Automatically converted textures will not be cleaned up afterwards");
-            this.cbxPreserveConverted.UseVisualStyleBackColor = true;
             // 
             // FormMain
             // 
