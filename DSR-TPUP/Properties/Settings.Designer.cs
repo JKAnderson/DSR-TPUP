@@ -142,5 +142,17 @@ namespace DSR_TPUP.Properties {
                 this["ConvertFile"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool PreserveConverted {
+            get {
+                return ((bool)(this["PreserveConverted"]));
+            }
+            set {
+                this["PreserveConverted"] = value;
+            }
+        }
     }
 }

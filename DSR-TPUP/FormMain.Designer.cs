@@ -67,6 +67,7 @@
             this.txtError = new System.Windows.Forms.TextBox();
             this.pbrProgress = new System.Windows.Forms.ProgressBar();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.cbxPreserveConverted = new System.Windows.Forms.CheckBox();
             this.tclMain.SuspendLayout();
             this.tpgUnpack.SuspendLayout();
             this.tpgRepack.SuspendLayout();
@@ -186,6 +187,7 @@
             // 
             // tpgRepack
             // 
+            this.tpgRepack.Controls.Add(this.cbxPreserveConverted);
             this.tpgRepack.Controls.Add(this.btnRepackExplore);
             this.tpgRepack.Controls.Add(this.btnRepack);
             this.tpgRepack.Controls.Add(this.btnRepackBrowse);
@@ -477,6 +479,17 @@
             this.openFileDialog1.Filter = "Images|*.dds;*.tga;*.png";
             this.openFileDialog1.Title = "Select an image to convert";
             // 
+            // cbxPreserveConverted
+            // 
+            this.cbxPreserveConverted.AutoSize = true;
+            this.cbxPreserveConverted.Location = new System.Drawing.Point(6, 60);
+            this.cbxPreserveConverted.Name = "cbxPreserveConverted";
+            this.cbxPreserveConverted.Size = new System.Drawing.Size(140, 17);
+            this.cbxPreserveConverted.TabIndex = 9;
+            this.cbxPreserveConverted.Text = "Preserve converted files";
+            this.toolTip1.SetToolTip(this.cbxPreserveConverted, "Automatically converted textures will not be cleaned up afterwards");
+            this.cbxPreserveConverted.UseVisualStyleBackColor = true;
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -556,6 +569,7 @@
         private System.Windows.Forms.Label lblConvertFile;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Button btnConvertExplore;
+        private System.Windows.Forms.CheckBox cbxPreserveConverted;
     }
 }
 

@@ -37,6 +37,7 @@ namespace DSR_TPUP
             txtGameDir.Text = settings.GameDir;
             txtUnpackDir.Text = settings.UnpackDir;
             txtRepackDir.Text = settings.RepackDir;
+            cbxPreserveConverted.Checked = settings.PreserveConverted;
             txtConvertFile.Text = settings.ConvertFile;
             tclMain.SelectedIndex = settings.TabSelected;
             spcLogs.SplitterDistance = settings.SplitterDistance;
@@ -119,6 +120,7 @@ namespace DSR_TPUP
                 settings.GameDir = txtGameDir.Text;
                 settings.UnpackDir = txtUnpackDir.Text;
                 settings.RepackDir = txtRepackDir.Text;
+                settings.PreserveConverted = cbxPreserveConverted.Checked;
                 settings.ConvertFile = txtConvertFile.Text;
                 settings.TabSelected = tclMain.SelectedIndex;
                 settings.SplitterDistance = spcLogs.SplitterDistance;
@@ -246,7 +248,7 @@ namespace DSR_TPUP
                         txtError.Clear();
                         pbrProgress.Value = 0;
                         pbrProgress.Maximum = 0;
-                        tpup = new TPUP(txtGameDir.Text, unpackDir, false, Environment.ProcessorCount);
+                        tpup = new TPUP(txtGameDir.Text, unpackDir, false, false, Environment.ProcessorCount);
                         tpupThread = new Thread(tpup.Start);
                         tpupThread.Start();
                     }
@@ -317,7 +319,7 @@ namespace DSR_TPUP
                     txtError.Clear();
                     pbrProgress.Value = 0;
                     pbrProgress.Maximum = 0;
-                    tpup = new TPUP(gameDir, repackDir, true, Environment.ProcessorCount);
+                    tpup = new TPUP(gameDir, repackDir, true, cbxPreserveConverted.Checked, Environment.ProcessorCount);
                     tpupThread = new Thread(tpup.Start);
                     tpupThread.Start();
                 }
@@ -476,6 +478,7 @@ namespace DSR_TPUP
         {
             txtGameDir.Enabled = enable;
             btnGameBrowse.Enabled = enable;
+            btnGameExplore.Enabled = enable;
             tclMain.Enabled = enable;
             btnAbort.Enabled = !enable;
             btnRestore.Enabled = enable;
