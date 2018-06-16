@@ -492,7 +492,7 @@ namespace DSR_TPUP
         private void appendError(string line)
         {
             if (txtError.TextLength > 0)
-                txtError.AppendText("\r\n" + line);
+                txtError.AppendText("\r\n\r\n" + line);
             else
                 txtError.AppendText(line);
         }

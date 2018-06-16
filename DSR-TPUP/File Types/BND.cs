@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace DSR_TPUP
 {
     class BND
     {
         private string signature;
-        private byte flag1, flag2, flag3;
         public List<BNDEntry> Files;
 
         public static BND Unpack(byte[] bytes)
@@ -19,13 +17,14 @@ namespace DSR_TPUP
         {
             BinaryReaderEx br = new BinaryReaderEx(bytes, false);
             br.AssertASCII("BND3", 4);
+            // FaceGen.fgbnd: 09G17X51
+            // Everything else (that I'm checking): 07D7R6\0\0
             signature = br.ReadASCII(8);
             // Some sort of format indicator
             br.AssertByte(0x74);
-            flag1 = br.ReadByte();
-            flag2 = br.ReadByte();
-            flag3 = br.ReadByte();
-            br.BigEndian = flag2 == 1;
+            br.AssertByte(0);
+            br.AssertByte(0);
+            br.AssertByte(0);
 
             int fileCount = br.ReadInt32();
             if (fileCount == 0)
@@ -40,6 +39,7 @@ namespace DSR_TPUP
                 br.AssertInt32(0x40);
                 int fileSize = br.ReadInt32();
                 int fileOffset = br.ReadInt32();
+                // This is not the same as i
                 int id = br.ReadInt32();
                 int fileNameOffset = br.ReadInt32();
                 br.AssertInt32(fileSize);
@@ -59,13 +59,13 @@ namespace DSR_TPUP
 
         public byte[] Repack()
         {
-            BinaryWriterEx bw = new BinaryWriterEx(flag1 == 1);
+            BinaryWriterEx bw = new BinaryWriterEx(false);
             bw.WriteASCII("BND3");
             bw.WriteASCII(signature);
             bw.WriteByte(0x74);
-            bw.WriteByte(flag1);
-            bw.WriteByte(flag2);
-            bw.WriteByte(flag3);
+            bw.WriteByte(0);
+            bw.WriteByte(0);
+            bw.WriteByte(0);
 
             bw.WriteInt32(Files.Count);
             bw.ReserveInt32("NameEnd");

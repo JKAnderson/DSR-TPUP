@@ -350,6 +350,8 @@ namespace DSR_TPUP
             if (!repack && tpf.Files.Count > 0)
                 Directory.CreateDirectory(baseDir + "\\" + subDir);
 
+            // parts\HR_F_0010 and parts\HR_F_0010_M have duplicate filenames in the same tpf
+            // thx QLOC
             List<string> names = new List<string>();
             List<string> dupes = new List<string>();
             foreach (TPFEntry tpfEntry in tpf.Files)
