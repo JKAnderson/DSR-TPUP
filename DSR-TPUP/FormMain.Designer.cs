@@ -506,8 +506,8 @@
             this.Controls.Add(this.tclMain);
             this.Controls.Add(this.txtGameDir);
             this.Controls.Add(this.lblGameDir);
-            this.Controls.Add(this.llbUpdate);
             this.Controls.Add(this.lblUpdate);
+            this.Controls.Add(this.llbUpdate);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(400, 300);
             this.Name = "FormMain";

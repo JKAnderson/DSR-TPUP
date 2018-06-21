@@ -138,7 +138,6 @@ namespace DSR_TPUP
             {
                 folderBrowserDialog1.SelectedPath = "";
             }
-            folderBrowserDialog1.SelectedPath = txtGameDir.Text;
             folderBrowserDialog1.ShowNewFolderButton = false;
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
                 txtGameDir.Text = folderBrowserDialog1.SelectedPath;
