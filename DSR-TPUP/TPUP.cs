@@ -92,7 +92,7 @@ namespace DSR_TPUP
                 if (validExtensions.Contains(decompressedExtension))
                 {
                     valid = true;
-                    if (repack && !filepath.Contains("CommonEffects"))
+                    if (repack)
                     {
                         string relative = Path.GetDirectoryName(filepath.Substring(gameDir.Length + 1));
                         string filename = Path.GetFileNameWithoutExtension(filepath);
@@ -300,8 +300,8 @@ namespace DSR_TPUP
                                 TPF bndTPF = TPF.Read(entry.Bytes);
                                 if (processTPF(bndTPF, looseDir, subpath, repack))
                                 {
-                                    entry.Bytes = bndTPF.Write();
                                     edited = true;
+                                    entry.Bytes = bndTPF.Write();
                                 }
                             }
                             else if (entryExtension == ".chrtpfbhd")
@@ -382,7 +382,7 @@ namespace DSR_TPUP
                         edited = true;
                     }
                 }
-                // This whouldn't really be a problem, but I would like to know about it
+                // This wouldn't really be a problem, but I would like to know about it
                 else
                     appendError("Error: {0}\r\n\u2514\u2500 Non-tpf found in tpfbdt: {1}", subPath, bdtEntry.Filename);
             }
@@ -424,9 +424,8 @@ namespace DSR_TPUP
                     // Look for files renamed to .dds2 for Paint.NET plugin support
                     if (!File.Exists(ddsPath) && File.Exists(ddsPath + "2"))
                         ddsPath += "2";
-
-                    ddsPath = @"C:\t.dds";
-                    if (File.Exists(ddsPath) && subPath.Contains("s20030"))
+                    
+                    if (File.Exists(ddsPath))
                     {
                         byte[] ddsBytes = File.ReadAllBytes(ddsPath);
                         DXGIFormat originalFormat = DDSFile.Read(new MemoryStream(tpfEntry.Bytes)).Format;
@@ -438,7 +437,7 @@ namespace DSR_TPUP
                         if (newFormat == DXGIFormat.Unknown)
                             appendError("Error: {0}\r\n\u2514\u2500 Could not determine format of override file.", subPath);
 
-                        if (false && originalFormat != DXGIFormat.Unknown && newFormat != DXGIFormat.Unknown && originalFormat != newFormat)
+                        if (originalFormat != DXGIFormat.Unknown && newFormat != DXGIFormat.Unknown && originalFormat != newFormat)
                         {
                             appendError("Warning: {0}\r\n\u2514\u2500 Expected format {1}, got format {2}.",
                                     subPath, PrintDXGIFormat(originalFormat), PrintDXGIFormat(newFormat));
@@ -542,7 +541,7 @@ namespace DSR_TPUP
         private static void backup(string path)
         {
             if (!File.Exists(path + ".tpupbak"))
-                File.Copy(path, path + ".tpupbak");
+                File.Move(path, path + ".tpupbak");
         }
 
         private static Dictionary<DXGIFormat, string> dxgiFormatOverride = new Dictionary<DXGIFormat, string>()
