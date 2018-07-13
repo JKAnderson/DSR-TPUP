@@ -92,7 +92,7 @@ namespace DSR_TPUP
                 if (validExtensions.Contains(decompressedExtension))
                 {
                     valid = true;
-                    if (repack)
+                    if (repack && !filepath.Contains("CommonEffects"))
                     {
                         string relative = Path.GetDirectoryName(filepath.Substring(gameDir.Length + 1));
                         string filename = Path.GetFileNameWithoutExtension(filepath);
@@ -190,13 +190,11 @@ namespace DSR_TPUP
                     appendLog("Unpacking: " + relative);
 
                 bool dcx = false;
-                byte[] bytes = File.ReadAllBytes(absolute);
                 string extension = Path.GetExtension(absolute);
                 string subpath = Path.GetDirectoryName(relative) + "\\" + Path.GetFileNameWithoutExtension(absolute);
                 if (extension == ".dcx")
                 {
                     dcx = true;
-                    bytes = DCX.Decompress(bytes);
                     extension = Path.GetExtension(Path.GetFileNameWithoutExtension(absolute));
                     subpath = subpath.Substring(0, subpath.Length - extension.Length);
                 }
@@ -205,16 +203,33 @@ namespace DSR_TPUP
                 switch (extension)
                 {
                     case ".tpf":
-                        TPF tpf = TPF.Unpack(bytes);
+                        TPF tpf;
+                        if (dcx)
+                        {
+                            byte[] decompressed = DCX.Decompress(absolute);
+                            tpf = TPF.Read(decompressed);
+                        }
+                        else
+                        {
+                            tpf = TPF.Read(absolute);
+                        }
+
                         if (processTPF(tpf, looseDir, subpath, repack))
                         {
                             edited = true;
-                            byte[] tpfBytes = tpf.Repack();
-                            if (dcx)
-                                tpfBytes = DCX.Compress(tpfBytes);
-                            writeRepack(absolute, tpfBytes);
+                            backup(absolute);
                             lock (countLock)
                                 fileCount++;
+
+                            if (dcx)
+                            {
+                                byte[] tpfBytes = tpf.Write();
+                                DCX.Compress(tpfBytes, absolute);
+                            }
+                            else
+                            {
+                                tpf.Write(absolute);
+                            }
                         }
                         break;
 
@@ -224,20 +239,34 @@ namespace DSR_TPUP
                         string bdtPath = dir + "\\" + name + ".tpfbdt";
                         if (File.Exists(bdtPath))
                         {
-                            byte[] bdtBytes = File.ReadAllBytes(bdtPath);
-                            BDT bdt = BDT.Unpack(bytes, bdtBytes);
+                            BDT bdt;
+                            if (dcx)
+                            {
+                                byte[] decompressed = DCX.Decompress(absolute);
+                                bdt = BDT.Read(decompressed, bdtPath);
+                            }
+                            else
+                            {
+                                bdt = BDT.Read(absolute, bdtPath);
+                            }
+
                             if (processBDT(bdt, looseDir, subpath, repack))
                             {
                                 edited = true;
-                                (byte[], byte[]) repacked = bdt.Repack();
-                                if (dcx)
-                                {
-                                    repacked.Item1 = DCX.Compress(repacked.Item1);
-                                }
-                                writeRepack(absolute, repacked.Item1);
-                                writeRepack(bdtPath, repacked.Item2);
+                                backup(absolute);
+                                backup(bdtPath);
                                 lock (countLock)
                                     fileCount++;
+
+                                if (dcx)
+                                {
+                                    byte[] bhdBytes = bdt.Write(bdtPath);
+                                    DCX.Compress(bhdBytes, absolute);
+                                }
+                                else
+                                {
+                                    bdt.Write(absolute, bdtPath);
+                                }
                             }
                         }
                         else
@@ -249,7 +278,17 @@ namespace DSR_TPUP
                     case ".fgbnd":
                     case ".objbnd":
                     case ".partsbnd":
-                        BND bnd = BND.Unpack(bytes);
+                        BND bnd;
+                        if (dcx)
+                        {
+                            byte[] decompressed = DCX.Decompress(absolute);
+                            bnd = BND.Read(decompressed);
+                        }
+                        else
+                        {
+                            bnd = BND.Read(absolute);
+                        }
+
                         foreach (BNDEntry entry in bnd.Files)
                         {
                             if (stop)
@@ -258,10 +297,10 @@ namespace DSR_TPUP
                             string entryExtension = Path.GetExtension(entry.Filename);
                             if (entryExtension == ".tpf")
                             {
-                                TPF bndTPF = TPF.Unpack(entry.Bytes);
+                                TPF bndTPF = TPF.Read(entry.Bytes);
                                 if (processTPF(bndTPF, looseDir, subpath, repack))
                                 {
-                                    entry.Bytes = bndTPF.Repack();
+                                    entry.Bytes = bndTPF.Write();
                                     edited = true;
                                 }
                             }
@@ -274,14 +313,12 @@ namespace DSR_TPUP
                                 string bndBDTPath = bndDir + "\\" + bndName + ".chrtpfbdt";
                                 if (File.Exists(bndBDTPath))
                                 {
-                                    byte[] bdtBytes = File.ReadAllBytes(bndBDTPath);
-                                    BDT bndBDT = BDT.Unpack(entry.Bytes, bdtBytes);
+                                    BDT bndBDT = BDT.Read(entry.Bytes, bndBDTPath);
                                     if (processBDT(bndBDT, looseDir, subpath, repack))
                                     {
-                                        (byte[], byte[]) repacked = bndBDT.Repack();
-                                        entry.Bytes = repacked.Item1;
-                                        writeRepack(bndBDTPath, repacked.Item2);
                                         edited = true;
+                                        backup(bndBDTPath);
+                                        entry.Bytes = bndBDT.Write(bndBDTPath);
                                     }
                                 }
                                 else
@@ -291,14 +328,19 @@ namespace DSR_TPUP
 
                         if (edited && !stop)
                         {
-                            byte[] bndBytes = bnd.Repack();
-                            if (dcx)
-                            {
-                                bndBytes = DCX.Compress(bndBytes);
-                            }
-                            writeRepack(absolute, bndBytes);
+                            backup(absolute);
                             lock (countLock)
                                 fileCount++;
+
+                            if (dcx)
+                            {
+                                byte[] bndBytes = bnd.Write();
+                                DCX.Compress(bndBytes, absolute);
+                            }
+                            else
+                            {
+                                bnd.Write(absolute);
+                            }
                         }
                         break;
                 }
@@ -331,10 +373,10 @@ namespace DSR_TPUP
 
                 if (bdtEntryExtension == ".tpf")
                 {
-                    TPF tpf = TPF.Unpack(bdtEntryBytes);
+                    TPF tpf = TPF.Read(bdtEntryBytes);
                     if (processTPF(tpf, baseDir, subPath, repack))
                     {
-                        bdtEntry.Bytes = tpf.Repack();
+                        bdtEntry.Bytes = tpf.Write();
                         if (dcx)
                             bdtEntry.Bytes = DCX.Compress(bdtEntry.Bytes);
                         edited = true;
@@ -383,7 +425,8 @@ namespace DSR_TPUP
                     if (!File.Exists(ddsPath) && File.Exists(ddsPath + "2"))
                         ddsPath += "2";
 
-                    if (File.Exists(ddsPath))
+                    ddsPath = @"C:\t.dds";
+                    if (File.Exists(ddsPath) && subPath.Contains("s20030"))
                     {
                         byte[] ddsBytes = File.ReadAllBytes(ddsPath);
                         DXGIFormat originalFormat = DDSFile.Read(new MemoryStream(tpfEntry.Bytes)).Format;
@@ -395,7 +438,7 @@ namespace DSR_TPUP
                         if (newFormat == DXGIFormat.Unknown)
                             appendError("Error: {0}\r\n\u2514\u2500 Could not determine format of override file.", subPath);
 
-                        if (originalFormat != DXGIFormat.Unknown && newFormat != DXGIFormat.Unknown && originalFormat != newFormat)
+                        if (false && originalFormat != DXGIFormat.Unknown && newFormat != DXGIFormat.Unknown && originalFormat != newFormat)
                         {
                             appendError("Warning: {0}\r\n\u2514\u2500 Expected format {1}, got format {2}.",
                                     subPath, PrintDXGIFormat(originalFormat), PrintDXGIFormat(newFormat));
@@ -496,11 +539,10 @@ namespace DSR_TPUP
             Error.Enqueue(line);
         }
 
-        private static void writeRepack(string path, byte[] bytes)
+        private static void backup(string path)
         {
             if (!File.Exists(path + ".tpupbak"))
                 File.Copy(path, path + ".tpupbak");
-            File.WriteAllBytes(path, bytes);
         }
 
         private static Dictionary<DXGIFormat, string> dxgiFormatOverride = new Dictionary<DXGIFormat, string>()
