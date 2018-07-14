@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Windows.Forms;
 using TeximpNet.DDS;
 
 namespace DSR_TPUP
@@ -199,176 +200,210 @@ namespace DSR_TPUP
                     subpath = subpath.Substring(0, subpath.Length - extension.Length);
                 }
 
-                bool edited = false;
-                switch (extension)
+                try
                 {
-                    case ".tpf":
-                        TPF tpf;
-                        if (dcx)
-                        {
-                            byte[] decompressed = DCX.Decompress(absolute);
-                            tpf = TPF.Read(decompressed);
-                        }
-                        else
-                        {
-                            tpf = TPF.Read(absolute);
-                        }
+                    bool edited = false;
+                    switch (extension)
+                    {
+                        case ".tpf":
+                            edited = prepareTPF(absolute, relative, subpath, dcx);
+                            break;
 
-                        if (processTPF(tpf, looseDir, subpath, repack))
-                        {
-                            edited = true;
-                            backup(absolute);
-                            lock (countLock)
-                                fileCount++;
+                        case ".tpfbhd":
+                            edited = prepareBHD(absolute, relative, subpath, dcx);
+                            break;
 
-                            if (dcx)
-                            {
-                                byte[] tpfBytes = tpf.Write();
-                                DCX.Compress(tpfBytes, absolute);
-                            }
-                            else
-                            {
-                                tpf.Write(absolute);
-                            }
-                        }
-                        break;
+                        case ".chrbnd":
+                        case ".ffxbnd":
+                        case ".fgbnd":
+                        case ".objbnd":
+                        case ".partsbnd":
+                            edited = prepareBND(absolute, relative, subpath, dcx);
+                            break;
+                    }
 
-                    case ".tpfbhd":
-                        string dir = Path.GetDirectoryName(absolute);
-                        string name = Path.GetFileNameWithoutExtension(absolute);
-                        string bdtPath = dir + "\\" + name + ".tpfbdt";
-                        if (File.Exists(bdtPath))
-                        {
-                            BDT bdt;
-                            if (dcx)
-                            {
-                                byte[] decompressed = DCX.Decompress(absolute);
-                                bdt = BDT.Read(decompressed, bdtPath);
-                            }
-                            else
-                            {
-                                bdt = BDT.Read(absolute, bdtPath);
-                            }
-
-                            if (processBDT(bdt, looseDir, subpath, repack))
-                            {
-                                edited = true;
-                                backup(absolute);
-                                backup(bdtPath);
-                                lock (countLock)
-                                    fileCount++;
-
-                                if (dcx)
-                                {
-                                    byte[] bhdBytes = bdt.Write(bdtPath);
-                                    DCX.Compress(bhdBytes, absolute);
-                                }
-                                else
-                                {
-                                    bdt.Write(absolute, bdtPath);
-                                }
-                            }
-                        }
-                        else
-                            throw new FileNotFoundException("Data file not found for header: " + relative);
-                        break;
-
-                    case ".chrbnd":
-                    case ".ffxbnd":
-                    case ".fgbnd":
-                    case ".objbnd":
-                    case ".partsbnd":
-                        BND bnd;
-                        if (dcx)
-                        {
-                            byte[] decompressed = DCX.Decompress(absolute);
-                            bnd = BND.Read(decompressed);
-                        }
-                        else
-                        {
-                            bnd = BND.Read(absolute);
-                        }
-
-                        foreach (BNDEntry entry in bnd.Files)
-                        {
-                            if (stop)
-                                break;
-
-                            string entryExtension = Path.GetExtension(entry.Filename);
-                            if (entryExtension == ".tpf")
-                            {
-                                TPF bndTPF = TPF.Read(entry.Bytes);
-                                if (processTPF(bndTPF, looseDir, subpath, repack))
-                                {
-                                    edited = true;
-                                    entry.Bytes = bndTPF.Write();
-                                }
-                            }
-                            else if (entryExtension == ".chrtpfbhd")
-                            {
-                                string bndDir = Path.GetDirectoryName(absolute);
-                                string bndName = Path.GetFileNameWithoutExtension(absolute);
-                                if (dcx)
-                                    bndName = Path.GetFileNameWithoutExtension(bndName);
-                                string bndBDTPath = bndDir + "\\" + bndName + ".chrtpfbdt";
-                                if (File.Exists(bndBDTPath))
-                                {
-                                    BDT bndBDT = BDT.Read(entry.Bytes, bndBDTPath);
-                                    if (processBDT(bndBDT, looseDir, subpath, repack))
-                                    {
-                                        edited = true;
-                                        backup(bndBDTPath);
-                                        entry.Bytes = bndBDT.Write(bndBDTPath);
-                                    }
-                                }
-                                else
-                                    throw new FileNotFoundException("Data file not found for header: " + relative);
-                            }
-                        }
-
-                        if (edited && !stop)
-                        {
-                            backup(absolute);
-                            lock (countLock)
-                                fileCount++;
-
-                            if (dcx)
-                            {
-                                byte[] bndBytes = bnd.Write();
-                                DCX.Compress(bndBytes, absolute);
-                            }
-                            else
-                            {
-                                bnd.Write(absolute);
-                            }
-                        }
-                        break;
+                    if (edited)
+                    {
+                        lock (countLock)
+                            fileCount++;
+                    }
+                    else if (repack && !stop)
+                    {
+                        appendError("Notice: {0}\r\n\u2514\u2500 No overrides found.", relative);
+                    }
                 }
-
-                if (repack && !edited && !stop)
-                    appendError("Notice: {0}\r\n\u2514\u2500 No overrides found.", relative);
+                catch (Exception ex)
+                {
+                    Stop();
+                    MessageBox.Show("Fatal error encountered. The operation will now terminate.\n\n" + ex.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
 
                 lock (progressLock)
                     progress++;
             }
         }
 
+        private bool prepareTPF(string absolute, string relative, string subpath, bool dcx)
+        {
+            bool edited = false;
+            TPF tpf;
+            if (dcx)
+            {
+                byte[] decompressed = DCX.Decompress(absolute);
+                tpf = TPF.Read(decompressed);
+            }
+            else
+            {
+                tpf = TPF.Read(absolute);
+            }
+
+            if (processTPF(tpf, looseDir, subpath, repack))
+            {
+                edited = true;
+                backup(absolute);
+
+                if (dcx)
+                {
+                    byte[] tpfBytes = tpf.Write();
+                    DCX.Compress(tpfBytes, absolute);
+                }
+                else
+                {
+                    tpf.Write(absolute);
+                }
+            }
+            return edited;
+        }
+
+        private bool prepareBHD(string absolute, string relative, string subpath, bool dcx)
+        {
+            bool edited = false;
+            string dir = Path.GetDirectoryName(absolute);
+            string name = Path.GetFileNameWithoutExtension(absolute);
+            string bdtPath = dir + "\\" + name + ".tpfbdt";
+            if (File.Exists(bdtPath))
+            {
+                BDT bdt;
+                if (dcx)
+                {
+                    byte[] decompressed = DCX.Decompress(absolute);
+                    bdt = BDT.Read(decompressed, bdtPath);
+                }
+                else
+                {
+                    bdt = BDT.Read(absolute, bdtPath);
+                }
+
+                if (processBDT(bdt, looseDir, subpath, repack))
+                {
+                    edited = true;
+                    backup(absolute);
+                    backup(bdtPath);
+
+                    if (dcx)
+                    {
+                        byte[] bhdBytes = bdt.Write(bdtPath);
+                        DCX.Compress(bhdBytes, absolute);
+                    }
+                    else
+                    {
+                        bdt.Write(absolute, bdtPath);
+                    }
+                }
+            }
+            else
+            {
+                appendError("Error: {0}\r\n\u2514\u2500 BDT not found: {1}", relative, bdtPath);
+            }
+            return edited;
+        }
+
+        private bool prepareBND(string absolute, string relative, string subpath, bool dcx)
+        {
+            bool edited = false;
+            BND bnd;
+            if (dcx)
+            {
+                byte[] decompressed = DCX.Decompress(absolute);
+                bnd = BND.Read(decompressed);
+            }
+            else
+            {
+                bnd = BND.Read(absolute);
+            }
+
+            foreach (BND.File bndEntry in bnd.Files)
+            {
+                if (stop)
+                    break;
+
+                string entryExtension = Path.GetExtension(bndEntry.Name);
+                if (entryExtension == ".tpf")
+                {
+                    TPF bndTPF = TPF.Read(bndEntry.Bytes);
+                    if (processTPF(bndTPF, looseDir, subpath, repack))
+                    {
+                        edited = true;
+                        bndEntry.Bytes = bndTPF.Write();
+                    }
+                }
+                else if (entryExtension == ".chrtpfbhd")
+                {
+                    string bndDir = Path.GetDirectoryName(absolute);
+                    string bndName = Path.GetFileNameWithoutExtension(absolute);
+                    if (dcx)
+                        bndName = Path.GetFileNameWithoutExtension(bndName);
+                    string bndBDTPath = bndDir + "\\" + bndName + ".chrtpfbdt";
+                    if (File.Exists(bndBDTPath))
+                    {
+                        BDT bndBDT = BDT.Read(bndEntry.Bytes, bndBDTPath);
+                        if (processBDT(bndBDT, looseDir, subpath, repack))
+                        {
+                            edited = true;
+                            backup(bndBDTPath);
+                            bndEntry.Bytes = bndBDT.Write(bndBDTPath);
+                        }
+                    }
+                    else
+                    {
+                        appendError("Error: {0}\r\n\u2514\u2500 BDT not found: {1}", relative, bndBDTPath);
+                    }
+                }
+            }
+
+            if (edited && !stop)
+            {
+                backup(absolute);
+
+                if (dcx)
+                {
+                    byte[] bndBytes = bnd.Write();
+                    DCX.Compress(bndBytes, absolute);
+                }
+                else
+                {
+                    bnd.Write(absolute);
+                }
+            }
+            return edited;
+        }
+
         private bool processBDT(BDT bdt, string baseDir, string subPath, bool repack)
         {
             bool edited = false;
-            foreach (BDTEntry bdtEntry in bdt.Files)
+            foreach (BDT.File file in bdt.Files)
             {
                 if (stop)
                     return false;
 
                 bool dcx = false;
-                byte[] bdtEntryBytes = bdtEntry.Bytes;
-                string bdtEntryExtension = Path.GetExtension(bdtEntry.Filename);
+                byte[] bdtEntryBytes = file.Bytes;
+                string bdtEntryExtension = Path.GetExtension(file.Name);
                 if (bdtEntryExtension == ".dcx")
                 {
                     dcx = true;
                     bdtEntryBytes = DCX.Decompress(bdtEntryBytes);
-                    bdtEntryExtension = Path.GetExtension(bdtEntry.Filename.Substring(0, bdtEntry.Filename.Length - 4));
+                    bdtEntryExtension = Path.GetExtension(file.Name.Substring(0, file.Name.Length - 4));
                 }
 
                 if (bdtEntryExtension == ".tpf")
@@ -376,44 +411,41 @@ namespace DSR_TPUP
                     TPF tpf = TPF.Read(bdtEntryBytes);
                     if (processTPF(tpf, baseDir, subPath, repack))
                     {
-                        bdtEntry.Bytes = tpf.Write();
+                        file.Bytes = tpf.Write();
                         if (dcx)
-                            bdtEntry.Bytes = DCX.Compress(bdtEntry.Bytes);
+                            file.Bytes = DCX.Compress(file.Bytes);
                         edited = true;
                     }
                 }
                 // This wouldn't really be a problem, but I would like to know about it
                 else
-                    appendError("Error: {0}\r\n\u2514\u2500 Non-tpf found in tpfbdt: {1}", subPath, bdtEntry.Filename);
+                    appendError("Error: {0}\r\n\u2514\u2500 Non-tpf found in tpfbdt: {1}", subPath, file.Name);
             }
             return edited;
         }
 
         private bool processTPF(TPF tpf, string baseDir, string subDir, bool repack)
         {
-            if (!repack && tpf.Files.Count > 0)
-                Directory.CreateDirectory(baseDir + "\\" + subDir);
-
             // parts\HR_F_0010 and parts\HR_F_0010_M have duplicate filenames in the same tpf
             // thx QLOC
             List<string> names = new List<string>();
             List<string> dupes = new List<string>();
-            foreach (TPFEntry tpfEntry in tpf.Files)
+            foreach (TPF.Texture texture in tpf.Textures)
             {
-                if (names.Contains(tpfEntry.Name))
-                    dupes.Add(tpfEntry.Name);
+                if (names.Contains(texture.Name))
+                    dupes.Add(texture.Name);
                 else
-                    names.Add(tpfEntry.Name);
+                    names.Add(texture.Name);
             }
 
             bool edited = false;
-            for (int i = 0; i < tpf.Files.Count; i++)
+            for (int i = 0; i < tpf.Textures.Count; i++)
             {
                 if (stop)
                     return false;
 
-                TPFEntry tpfEntry = tpf.Files[i];
-                string name = tpfEntry.Name;
+                TPF.Texture texture = tpf.Textures[i];
+                string name = texture.Name;
                 if (dupes.Contains(name))
                     name += "_" + i;
                 string subPath = subDir + "\\" + name + ".dds";
@@ -428,7 +460,7 @@ namespace DSR_TPUP
                     if (File.Exists(ddsPath))
                     {
                         byte[] ddsBytes = File.ReadAllBytes(ddsPath);
-                        DXGIFormat originalFormat = DDSFile.Read(new MemoryStream(tpfEntry.Bytes)).Format;
+                        DXGIFormat originalFormat = DDSFile.Read(new MemoryStream(texture.Bytes)).Format;
                         DXGIFormat newFormat = DDSFile.Read(new MemoryStream(ddsBytes)).Format;
 
                         if (originalFormat == DXGIFormat.Unknown)
@@ -448,7 +480,7 @@ namespace DSR_TPUP
                                 ddsBytes = newBytes;
                         }
 
-                        tpfEntry.Bytes = ddsBytes;
+                        texture.Bytes = ddsBytes;
                         edited = true;
                         lock (countLock)
                             textureCount++;
@@ -456,7 +488,7 @@ namespace DSR_TPUP
                 }
                 else
                 {
-                    MemoryStream stream = new MemoryStream(tpfEntry.Bytes);
+                    MemoryStream stream = new MemoryStream(texture.Bytes);
                     DDSContainer dds = DDSFile.Read(stream);
 
                     lock (writeLock)
@@ -469,7 +501,8 @@ namespace DSR_TPUP
 
                         if (!File.Exists(ddsPath))
                         {
-                            File.WriteAllBytes(ddsPath, tpfEntry.Bytes);
+                            Directory.CreateDirectory(Path.GetDirectoryName(ddsPath));
+                            File.WriteAllBytes(ddsPath, texture.Bytes);
                             lock (countLock)
                                 textureCount++;
                         }
