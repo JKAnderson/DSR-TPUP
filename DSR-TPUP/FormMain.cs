@@ -464,9 +464,11 @@ namespace DSR_TPUP
         {
             if (tpupThread != null)
             {
-                updateLogs();
-
-                if (!tpupThread.IsAlive)
+                if (tpupThread.IsAlive)
+                {
+                    updateLogs();
+                }
+                else
                 {
                     // Make sure to clear out any leftover messages
                     updateLogs();

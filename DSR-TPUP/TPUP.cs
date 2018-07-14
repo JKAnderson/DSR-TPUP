@@ -456,7 +456,7 @@ namespace DSR_TPUP
                     // Look for files renamed to .dds2 for Paint.NET plugin support
                     if (!File.Exists(ddsPath) && File.Exists(ddsPath + "2"))
                         ddsPath += "2";
-                    
+
                     if (File.Exists(ddsPath))
                     {
                         byte[] ddsBytes = File.ReadAllBytes(ddsPath);

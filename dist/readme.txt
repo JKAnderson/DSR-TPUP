@@ -1,5 +1,5 @@
 
---| DSR Texture Packer & Unpacker 1.4
+--| DSR Texture Packer & Unpacker 1.5
 --| https://www.nexusmods.com/darksoulsremastered/mods/9
 --| https://github.com/JKAnderson/DSR-TPUP
 
@@ -44,6 +44,17 @@ To distribute your textures, I recommend including the entire override folder (w
 To install texture mods, copy the contents of their override folder into your own, or otherwise follow the author's instructions. Once the files are in place, open the app, verify that the Game Directory is set correctly, then switch to the Repack tab and click the Repack button. The game's files will be edited to include your texture overrides, and any modified files will be backed up. To revert all modded textures, click the Restore button in the app to restore all backed-up files.
 
 
+--| Troubleshooting
+
+If the app crashes immediately after starting an operation or you see any errors related to file reading or writing, running the app As Administrator will usually help.
+
+If there are problems with texture conversion, make sure you have the Visual C++ redist linked above installed, and that it's the x64 version.
+
+If you run into "out of memory" issues, reduce the thread count to lower the peak load on your system.
+
+If you're trying to install a mod but no files end up being repacked, pay close attention to the instructions for whatever mod you're using. The folders in the override should mirror the folders in your game install (chr, map, obj, etc.)
+
+
 --| Credits
 
 Costura.Fody by Simon Cropp, Cameron MacFarland
@@ -63,6 +74,11 @@ https://bitbucket.org/Starnick/teximpnet
 
 
 --| Changelog
+
+1.5
+	Reduced peak memory usage by up to 50% (especially under heavy load)
+	Added an option for number of threads to use
+	Less crashing
 
 1.4
 	UI improvements: progress bar, separate logs and errors, open in explorer buttons
