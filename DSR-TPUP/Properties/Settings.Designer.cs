@@ -154,5 +154,17 @@ namespace DSR_TPUP.Properties {
                 this["PreserveConverted"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Threads {
+            get {
+                return ((int)(this["Threads"]));
+            }
+            set {
+                this["Threads"] = value;
+            }
+        }
     }
 }

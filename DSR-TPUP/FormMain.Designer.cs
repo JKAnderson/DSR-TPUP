@@ -29,8 +29,13 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.Windows.Forms.Label lblGameDir;
+            System.Windows.Forms.Label lblUnpackDir;
+            System.Windows.Forms.Label lblRepackDir;
+            System.Windows.Forms.Label lblConvertFormat;
+            System.Windows.Forms.Label lblConvertFile;
+            System.Windows.Forms.Label lblThreads;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
-            this.lblGameDir = new System.Windows.Forms.Label();
             this.txtGameDir = new System.Windows.Forms.TextBox();
             this.tmrCheckThread = new System.Windows.Forms.Timer(this.components);
             this.tclMain = new System.Windows.Forms.TabControl();
@@ -39,22 +44,18 @@
             this.btnUnpack = new System.Windows.Forms.Button();
             this.btnUnpackBrowse = new System.Windows.Forms.Button();
             this.txtUnpackDir = new System.Windows.Forms.TextBox();
-            this.lblUnpackDir = new System.Windows.Forms.Label();
             this.tpgRepack = new System.Windows.Forms.TabPage();
             this.cbxPreserveConverted = new System.Windows.Forms.CheckBox();
             this.btnRepackExplore = new System.Windows.Forms.Button();
             this.btnRepack = new System.Windows.Forms.Button();
             this.btnRepackBrowse = new System.Windows.Forms.Button();
             this.txtRepackDir = new System.Windows.Forms.TextBox();
-            this.lblRepackDir = new System.Windows.Forms.Label();
             this.tpgConvert = new System.Windows.Forms.TabPage();
             this.btnConvertExplore = new System.Windows.Forms.Button();
             this.btnConvert = new System.Windows.Forms.Button();
             this.cmbConvertFormat = new System.Windows.Forms.ComboBox();
-            this.lblConvertFormat = new System.Windows.Forms.Label();
             this.btnConvertBrowse = new System.Windows.Forms.Button();
             this.txtConvertFile = new System.Windows.Forms.TextBox();
-            this.lblConvertFile = new System.Windows.Forms.Label();
             this.btnGameBrowse = new System.Windows.Forms.Button();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.btnRestore = new System.Windows.Forms.Button();
@@ -68,6 +69,14 @@
             this.txtError = new System.Windows.Forms.TextBox();
             this.pbrProgress = new System.Windows.Forms.ProgressBar();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.nudThreads = new System.Windows.Forms.NumericUpDown();
+            this.lblProgress = new System.Windows.Forms.Label();
+            lblGameDir = new System.Windows.Forms.Label();
+            lblUnpackDir = new System.Windows.Forms.Label();
+            lblRepackDir = new System.Windows.Forms.Label();
+            lblConvertFormat = new System.Windows.Forms.Label();
+            lblConvertFile = new System.Windows.Forms.Label();
+            lblThreads = new System.Windows.Forms.Label();
             this.tclMain.SuspendLayout();
             this.tpgUnpack.SuspendLayout();
             this.tpgRepack.SuspendLayout();
@@ -76,16 +85,17 @@
             this.spcLogs.Panel1.SuspendLayout();
             this.spcLogs.Panel2.SuspendLayout();
             this.spcLogs.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudThreads)).BeginInit();
             this.SuspendLayout();
             // 
             // lblGameDir
             // 
-            this.lblGameDir.AutoSize = true;
-            this.lblGameDir.Location = new System.Drawing.Point(22, 9);
-            this.lblGameDir.Name = "lblGameDir";
-            this.lblGameDir.Size = new System.Drawing.Size(80, 13);
-            this.lblGameDir.TabIndex = 0;
-            this.lblGameDir.Text = "Game Directory";
+            lblGameDir.AutoSize = true;
+            lblGameDir.Location = new System.Drawing.Point(22, 9);
+            lblGameDir.Name = "lblGameDir";
+            lblGameDir.Size = new System.Drawing.Size(80, 13);
+            lblGameDir.TabIndex = 0;
+            lblGameDir.Text = "Game Directory";
             // 
             // txtGameDir
             // 
@@ -121,7 +131,7 @@
             this.tpgUnpack.Controls.Add(this.btnUnpack);
             this.tpgUnpack.Controls.Add(this.btnUnpackBrowse);
             this.tpgUnpack.Controls.Add(this.txtUnpackDir);
-            this.tpgUnpack.Controls.Add(this.lblUnpackDir);
+            this.tpgUnpack.Controls.Add(lblUnpackDir);
             this.tpgUnpack.Location = new System.Drawing.Point(4, 22);
             this.tpgUnpack.Name = "tpgUnpack";
             this.tpgUnpack.Padding = new System.Windows.Forms.Padding(3);
@@ -178,12 +188,12 @@
             // 
             // lblUnpackDir
             // 
-            this.lblUnpackDir.AutoSize = true;
-            this.lblUnpackDir.Location = new System.Drawing.Point(6, 3);
-            this.lblUnpackDir.Name = "lblUnpackDir";
-            this.lblUnpackDir.Size = new System.Drawing.Size(84, 13);
-            this.lblUnpackDir.TabIndex = 0;
-            this.lblUnpackDir.Text = "Output Directory";
+            lblUnpackDir.AutoSize = true;
+            lblUnpackDir.Location = new System.Drawing.Point(6, 3);
+            lblUnpackDir.Name = "lblUnpackDir";
+            lblUnpackDir.Size = new System.Drawing.Size(84, 13);
+            lblUnpackDir.TabIndex = 0;
+            lblUnpackDir.Text = "Output Directory";
             // 
             // tpgRepack
             // 
@@ -192,7 +202,7 @@
             this.tpgRepack.Controls.Add(this.btnRepack);
             this.tpgRepack.Controls.Add(this.btnRepackBrowse);
             this.tpgRepack.Controls.Add(this.txtRepackDir);
-            this.tpgRepack.Controls.Add(this.lblRepackDir);
+            this.tpgRepack.Controls.Add(lblRepackDir);
             this.tpgRepack.Location = new System.Drawing.Point(4, 22);
             this.tpgRepack.Name = "tpgRepack";
             this.tpgRepack.Padding = new System.Windows.Forms.Padding(3);
@@ -260,22 +270,22 @@
             // 
             // lblRepackDir
             // 
-            this.lblRepackDir.AutoSize = true;
-            this.lblRepackDir.Location = new System.Drawing.Point(6, 3);
-            this.lblRepackDir.Name = "lblRepackDir";
-            this.lblRepackDir.Size = new System.Drawing.Size(92, 13);
-            this.lblRepackDir.TabIndex = 4;
-            this.lblRepackDir.Text = "Override Directory";
+            lblRepackDir.AutoSize = true;
+            lblRepackDir.Location = new System.Drawing.Point(6, 3);
+            lblRepackDir.Name = "lblRepackDir";
+            lblRepackDir.Size = new System.Drawing.Size(92, 13);
+            lblRepackDir.TabIndex = 4;
+            lblRepackDir.Text = "Override Directory";
             // 
             // tpgConvert
             // 
             this.tpgConvert.Controls.Add(this.btnConvertExplore);
             this.tpgConvert.Controls.Add(this.btnConvert);
             this.tpgConvert.Controls.Add(this.cmbConvertFormat);
-            this.tpgConvert.Controls.Add(this.lblConvertFormat);
+            this.tpgConvert.Controls.Add(lblConvertFormat);
             this.tpgConvert.Controls.Add(this.btnConvertBrowse);
             this.tpgConvert.Controls.Add(this.txtConvertFile);
-            this.tpgConvert.Controls.Add(this.lblConvertFile);
+            this.tpgConvert.Controls.Add(lblConvertFile);
             this.tpgConvert.Location = new System.Drawing.Point(4, 22);
             this.tpgConvert.Name = "tpgConvert";
             this.tpgConvert.Padding = new System.Windows.Forms.Padding(3);
@@ -322,12 +332,12 @@
             // 
             // lblConvertFormat
             // 
-            this.lblConvertFormat.AutoSize = true;
-            this.lblConvertFormat.Location = new System.Drawing.Point(6, 42);
-            this.lblConvertFormat.Name = "lblConvertFormat";
-            this.lblConvertFormat.Size = new System.Drawing.Size(39, 13);
-            this.lblConvertFormat.TabIndex = 10;
-            this.lblConvertFormat.Text = "Format";
+            lblConvertFormat.AutoSize = true;
+            lblConvertFormat.Location = new System.Drawing.Point(6, 42);
+            lblConvertFormat.Name = "lblConvertFormat";
+            lblConvertFormat.Size = new System.Drawing.Size(39, 13);
+            lblConvertFormat.TabIndex = 10;
+            lblConvertFormat.Text = "Format";
             // 
             // btnConvertBrowse
             // 
@@ -353,12 +363,12 @@
             // 
             // lblConvertFile
             // 
-            this.lblConvertFile.AutoSize = true;
-            this.lblConvertFile.Location = new System.Drawing.Point(6, 3);
-            this.lblConvertFile.Name = "lblConvertFile";
-            this.lblConvertFile.Size = new System.Drawing.Size(63, 13);
-            this.lblConvertFile.TabIndex = 7;
-            this.lblConvertFile.Text = "Convert File";
+            lblConvertFile.AutoSize = true;
+            lblConvertFile.Location = new System.Drawing.Point(6, 3);
+            lblConvertFile.Name = "lblConvertFile";
+            lblConvertFile.Size = new System.Drawing.Size(63, 13);
+            lblConvertFile.TabIndex = 7;
+            lblConvertFile.Text = "Convert File";
             // 
             // btnGameBrowse
             // 
@@ -379,7 +389,7 @@
             // btnRestore
             // 
             this.btnRestore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRestore.Location = new System.Drawing.Point(655, 166);
+            this.btnRestore.Location = new System.Drawing.Point(655, 183);
             this.btnRestore.Name = "btnRestore";
             this.btnRestore.Size = new System.Drawing.Size(75, 23);
             this.btnRestore.TabIndex = 8;
@@ -391,7 +401,7 @@
             // btnAbort
             // 
             this.btnAbort.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAbort.Location = new System.Drawing.Point(574, 166);
+            this.btnAbort.Location = new System.Drawing.Point(574, 183);
             this.btnAbort.Name = "btnAbort";
             this.btnAbort.Size = new System.Drawing.Size(75, 23);
             this.btnAbort.TabIndex = 9;
@@ -440,7 +450,7 @@
             this.spcLogs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.spcLogs.Location = new System.Drawing.Point(12, 195);
+            this.spcLogs.Location = new System.Drawing.Point(12, 212);
             this.spcLogs.Name = "spcLogs";
             this.spcLogs.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -451,8 +461,8 @@
             // spcLogs.Panel2
             // 
             this.spcLogs.Panel2.Controls.Add(this.txtError);
-            this.spcLogs.Size = new System.Drawing.Size(728, 327);
-            this.spcLogs.SplitterDistance = 144;
+            this.spcLogs.Size = new System.Drawing.Size(728, 310);
+            this.spcLogs.SplitterDistance = 136;
             this.spcLogs.TabIndex = 12;
             // 
             // txtLog
@@ -463,7 +473,7 @@
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(728, 144);
+            this.txtLog.Size = new System.Drawing.Size(728, 136);
             this.txtLog.TabIndex = 0;
             // 
             // txtError
@@ -474,16 +484,16 @@
             this.txtError.Name = "txtError";
             this.txtError.ReadOnly = true;
             this.txtError.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtError.Size = new System.Drawing.Size(728, 179);
+            this.txtError.Size = new System.Drawing.Size(728, 170);
             this.txtError.TabIndex = 0;
             // 
             // pbrProgress
             // 
             this.pbrProgress.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pbrProgress.Location = new System.Drawing.Point(22, 166);
+            this.pbrProgress.Location = new System.Drawing.Point(22, 183);
             this.pbrProgress.Name = "pbrProgress";
-            this.pbrProgress.Size = new System.Drawing.Size(546, 23);
+            this.pbrProgress.Size = new System.Drawing.Size(465, 23);
             this.pbrProgress.TabIndex = 13;
             // 
             // openFileDialog1
@@ -492,11 +502,51 @@
             this.openFileDialog1.Filter = "Images|*.dds;*.tga;*.png";
             this.openFileDialog1.Title = "Select an image to convert";
             // 
+            // nudThreads
+            // 
+            this.nudThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.nudThreads.Location = new System.Drawing.Point(493, 183);
+            this.nudThreads.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudThreads.Name = "nudThreads";
+            this.nudThreads.Size = new System.Drawing.Size(75, 20);
+            this.nudThreads.TabIndex = 15;
+            this.nudThreads.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // lblThreads
+            // 
+            lblThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            lblThreads.AutoSize = true;
+            lblThreads.Location = new System.Drawing.Point(490, 167);
+            lblThreads.Name = "lblThreads";
+            lblThreads.Size = new System.Drawing.Size(46, 13);
+            lblThreads.TabIndex = 16;
+            lblThreads.Text = "Threads";
+            // 
+            // lblProgress
+            // 
+            this.lblProgress.AutoSize = true;
+            this.lblProgress.Location = new System.Drawing.Point(22, 167);
+            this.lblProgress.Name = "lblProgress";
+            this.lblProgress.Size = new System.Drawing.Size(48, 13);
+            this.lblProgress.TabIndex = 17;
+            this.lblProgress.Text = "Progress";
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(752, 534);
+            this.Controls.Add(this.lblProgress);
+            this.Controls.Add(lblThreads);
+            this.Controls.Add(this.nudThreads);
             this.Controls.Add(this.btnGameExplore);
             this.Controls.Add(this.pbrProgress);
             this.Controls.Add(this.spcLogs);
@@ -505,7 +555,7 @@
             this.Controls.Add(this.btnGameBrowse);
             this.Controls.Add(this.tclMain);
             this.Controls.Add(this.txtGameDir);
-            this.Controls.Add(this.lblGameDir);
+            this.Controls.Add(lblGameDir);
             this.Controls.Add(this.lblUpdate);
             this.Controls.Add(this.llbUpdate);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -527,14 +577,13 @@
             this.spcLogs.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spcLogs)).EndInit();
             this.spcLogs.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.nudThreads)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.Label lblGameDir;
         private System.Windows.Forms.TextBox txtGameDir;
         private System.Windows.Forms.Timer tmrCheckThread;
         private System.Windows.Forms.TabControl tclMain;
@@ -542,12 +591,10 @@
         private System.Windows.Forms.Button btnUnpack;
         private System.Windows.Forms.Button btnUnpackBrowse;
         private System.Windows.Forms.TextBox txtUnpackDir;
-        private System.Windows.Forms.Label lblUnpackDir;
         private System.Windows.Forms.TabPage tpgRepack;
         private System.Windows.Forms.Button btnRepack;
         private System.Windows.Forms.Button btnRepackBrowse;
         private System.Windows.Forms.TextBox txtRepackDir;
-        private System.Windows.Forms.Label lblRepackDir;
         private System.Windows.Forms.Button btnGameBrowse;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.Button btnRestore;
@@ -565,13 +612,13 @@
         private System.Windows.Forms.TabPage tpgConvert;
         private System.Windows.Forms.Button btnConvert;
         private System.Windows.Forms.ComboBox cmbConvertFormat;
-        private System.Windows.Forms.Label lblConvertFormat;
         private System.Windows.Forms.Button btnConvertBrowse;
         private System.Windows.Forms.TextBox txtConvertFile;
-        private System.Windows.Forms.Label lblConvertFile;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Button btnConvertExplore;
         private System.Windows.Forms.CheckBox cbxPreserveConverted;
+        private System.Windows.Forms.NumericUpDown nudThreads;
+        private System.Windows.Forms.Label lblProgress;
     }
 }
 

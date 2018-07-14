@@ -41,6 +41,12 @@ namespace DSR_TPUP
             txtConvertFile.Text = settings.ConvertFile;
             tclMain.SelectedIndex = settings.TabSelected;
             spcLogs.SplitterDistance = settings.SplitterDistance;
+
+            nudThreads.Maximum = Environment.ProcessorCount;
+            if (settings.Threads == 0 || settings.Threads > Environment.ProcessorCount)
+                settings.Threads = Environment.ProcessorCount;
+            nudThreads.Value = settings.Threads;
+
             enableControls(true);
 
             // Force common formats to the top
@@ -124,6 +130,7 @@ namespace DSR_TPUP
                 settings.ConvertFile = txtConvertFile.Text;
                 settings.TabSelected = tclMain.SelectedIndex;
                 settings.SplitterDistance = spcLogs.SplitterDistance;
+                settings.Threads = (int)nudThreads.Value;
             }
         }
 
@@ -247,7 +254,7 @@ namespace DSR_TPUP
                         txtError.Clear();
                         pbrProgress.Value = 0;
                         pbrProgress.Maximum = 0;
-                        tpup = new TPUP(txtGameDir.Text, unpackDir, false, false, Environment.ProcessorCount);
+                        tpup = new TPUP(txtGameDir.Text, unpackDir, false, false, (int)nudThreads.Value);
                         tpupThread = new Thread(tpup.Start);
                         tpupThread.Start();
                     }
@@ -318,7 +325,7 @@ namespace DSR_TPUP
                     txtError.Clear();
                     pbrProgress.Value = 0;
                     pbrProgress.Maximum = 0;
-                    tpup = new TPUP(gameDir, repackDir, true, cbxPreserveConverted.Checked, Environment.ProcessorCount);
+                    tpup = new TPUP(gameDir, repackDir, true, cbxPreserveConverted.Checked, (int)nudThreads.Value);
                     tpupThread = new Thread(tpup.Start);
                     tpupThread.Start();
                 }
@@ -443,9 +450,14 @@ namespace DSR_TPUP
                 appendError(line);
 
             if (pbrProgress.Maximum == 0)
+            {
                 pbrProgress.Maximum = tpup.GetProgressMax();
+            }
             else
+            {
                 pbrProgress.Value = tpup.GetProgress();
+                lblProgress.Text = string.Format("Progress ({0}/{1})", pbrProgress.Value, pbrProgress.Maximum);
+            }
         }
 
         private void tmrCheckThread_Tick(object sender, EventArgs e)
@@ -463,6 +475,7 @@ namespace DSR_TPUP
                     tpupThread = null;
                     pbrProgress.Maximum = 0;
                     pbrProgress.Value = 0;
+                    lblProgress.Text = "Progress";
                     enableControls(true);
 
                     if (abort)
@@ -486,6 +499,7 @@ namespace DSR_TPUP
             btnGameBrowse.Enabled = enable;
             btnGameExplore.Enabled = enable;
             tclMain.Enabled = enable;
+            nudThreads.Enabled = enable;
             btnAbort.Enabled = !enable;
             btnRestore.Enabled = enable;
         }
