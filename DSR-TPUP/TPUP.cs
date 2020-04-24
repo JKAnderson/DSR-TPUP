@@ -47,8 +47,17 @@ namespace DSR_TPUP
             stop = false;
             conversionWarning = false;
             preserveConverted = setPreserve;
-            gameDir = Path.GetFullPath(setGameDir);
-            looseDir = Path.GetFullPath(setLooseDir);
+
+            if (setGameDir.EndsWith("\\"))
+                gameDir = setGameDir.Substring(0, setGameDir.Length-1);
+            else
+                gameDir = Path.GetFullPath(setGameDir);
+
+            if (setLooseDir.EndsWith("\\"))
+                looseDir = setLooseDir.Substring(0, setLooseDir.Length - 1);
+            else
+                looseDir = Path.GetFullPath(setLooseDir);
+
             repack = setRepack;
             Log = new ConcurrentQueue<string>();
             Error = new ConcurrentQueue<string>();
